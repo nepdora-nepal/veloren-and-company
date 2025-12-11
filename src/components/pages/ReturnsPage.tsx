@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { RotateCcw, Clock, CheckCircle, Package } from "lucide-react";
+import { RotateCcw, Clock, Package } from "lucide-react";
 
 
 const returnSteps = [
@@ -89,9 +89,9 @@ const ReturnsPage = () => {
           >
             <h2 className="text-2xl font-bold text-center mb-12">How Returns Work</h2>
             <div className="space-y-6">
-              {returnSteps.map((step, index) => (
+              {returnSteps.map((step) => (
                 <div key={step.step} className="flex gap-6">
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <div className="w-10 h-10 bg-foreground text-background rounded-full flex items-center justify-center font-bold">
                       {step.step}
                     </div>
@@ -136,7 +136,7 @@ const ReturnsPage = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-3">Exchanges</h3>
                   <p>
-                    We don't offer direct exchanges. To exchange an item, please return it for a refund 
+                    We don&apos;t offer direct exchanges. To exchange an item, please return it for a refund 
                     and place a new order for the item you want. This ensures you get your new item as 
                     quickly as possible.
                   </p>
@@ -146,7 +146,7 @@ const ReturnsPage = () => {
                   <h3 className="text-lg font-semibold text-foreground mb-3">Refund Processing</h3>
                   <p>
                     Refunds are processed to your original payment method within 5-7 business days 
-                    after we receive your return. You'll receive an email confirmation once your 
+                    after we receive your return. You&apos;ll receive an email confirmation once your 
                     refund has been processed.
                   </p>
                 </div>

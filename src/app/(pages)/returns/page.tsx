@@ -1,4 +1,4 @@
-import ReturnsPage from "@/pages/ReturnsPage";
+import ReturnsPage from "@/components/pages/ReturnsPage";
 
 export default function Page() {
   return <ReturnsPage />;

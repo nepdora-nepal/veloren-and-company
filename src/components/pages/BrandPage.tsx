@@ -18,7 +18,7 @@ const BrandPage = () => {
     <div className="min-h-screen bg-background">
       <main className="pt-20">
         {/* Hero Banner */}
-        <section className="relative bg-gradient-to-br from-rose via-accent to-beige py-20 md:py-32">
+        <section className="relative bg-linear-to-br from-rose via-accent to-beige py-20 md:py-32">
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-peach/40 rounded-full blur-3xl" />
           </div>
