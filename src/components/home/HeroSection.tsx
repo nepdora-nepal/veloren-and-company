@@ -4,18 +4,19 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export const HeroSection = () => {
   return (
-    <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-linear-to-br from-rose via-accent to-beige">
+    <section className="relative  min-h-[90vh] flex items-center overflow-hidden bg-linear-to-br from-rose via-accent to-beige">
       {/* Background Glow Effects */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-peach/60 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-rose/40 rounded-full blur-3xl" />
       </div>
 
-      <div className="container-luxury relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className="grid lg:grid-cols-2 gap-96 items-center">
           {/* Left Content */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -59,13 +60,17 @@ export const HeroSection = () => {
               transition={{ delay: 0.5, duration: 0.6 }}
               className="flex flex-wrap gap-4"
             >
-              <Button variant="hero" size="xl">
-                Shop Now
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              <Button variant="outline" size="xl" className="bg-card/50 backdrop-blur-sm">
-                Explore Routines
-              </Button>
+              <Link href="/products">
+                <Button variant="hero" size="xl" className="cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-elevated">
+                  Shop Now
+                  <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+              <Link href="/about">
+                <Button variant="outline" size="xl" className="bg-card/50 cursor-pointer backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-card/80 hover:shadow-medium">
+                  About Us
+                </Button>
+              </Link>
             </motion.div>
 
             {/* Trust Badges */}
@@ -103,10 +108,10 @@ export const HeroSection = () => {
               {/* Main Image */}
               <div className="absolute inset-0 rounded-[3rem] overflow-hidden shadow-elevated">
                 <Image
-                  src="https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=800&h=800&fit=crop"
+                  src="https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=900&h=900&fit=crop"
                   alt="Beautiful woman with glowing skin"
-                  width={800}
-                  height={800}
+                  width={900}
+                  height={900}
                   className="w-full h-full object-cover"
                 />
               </div>

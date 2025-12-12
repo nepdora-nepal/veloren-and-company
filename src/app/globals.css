@@ -145,7 +145,7 @@
 /* Component classes */
 @layer components {
   .container-luxury {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    @apply max-w-7xl mx-auto;
   }
   .btn-primary {
     @apply bg-primary text-primary-foreground px-8 py-4 rounded-2xl font-medium 

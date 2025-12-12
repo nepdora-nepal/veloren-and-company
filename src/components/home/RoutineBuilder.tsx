@@ -26,7 +26,7 @@ export const RoutineBuilder = () => {
             className="space-y-8"
           >
             <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-card rounded-full shadow-soft">
+              <div className="inline-flex items-center gap-2 px-4  py-2 bg-card rounded-full shadow-soft">
                 <Sparkles className="w-4 h-4" />
                 <span className="text-sm font-medium">Personalized Routine</span>
               </div>

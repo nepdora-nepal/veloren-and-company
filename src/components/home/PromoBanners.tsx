@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Gift, Sparkles } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 export const PromoBanners = () => {
   return (
@@ -35,10 +36,12 @@ export const PromoBanners = () => {
                   sets available.
                 </p>
               </div>
-              <Button variant="hero" className="group">
+              <Link href="/products">
+              <Button variant="hero" className="group cursor-pointer transition-opacity">
                 Shop Collection
                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
               </Button>
+              </Link>
             </div>
 
             {/* Decorative Elements */}
