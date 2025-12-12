@@ -3,16 +3,30 @@
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { ProductCard } from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
-import { products, brands } from "@/data/products";
+import { useProductsWithParams, useCategories } from "@/hooks/use-product";
 
 const BrandPage = () => {
   const params = useParams();
-  const id = params?.id as string;
-  const brand = brands.find((b) => b.id === id) || brands[0];
-  const brandProducts = products.filter((p) => p.brand === brand.name);
+  const slug = params?.id as string;
+  
+  // Fetch products (since there's no brand API, we show all products for now)
+  const { data: productsData, isLoading } = useProductsWithParams({
+    page_size: 20,
+  });
+  
+  const { data: categoriesData } = useCategories();
+  const categories = categoriesData?.results || [];
+  const brandProducts = productsData?.results || [];
+
+  // Placeholder brand info (can be replaced when brands API is available)
+  const brand = {
+    id: slug,
+    name: slug ? slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, " ") : "Brand",
+    description: "Discover our curated collection of premium skincare products, formulated with the finest ingredients for visible results.",
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -67,18 +81,22 @@ const BrandPage = () => {
               </select>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {brandProducts.map((product, index) => (
-                <ProductCard key={product.id} product={product} index={index} />
-              ))}
-            </div>
-
-            {brandProducts.length === 0 && (
+            {isLoading ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : brandProducts.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                {brandProducts.map((product, index) => (
+                  <ProductCard key={product.id} product={product} index={index} />
+                ))}
+              </div>
+            ) : (
               <div className="text-center py-16">
                 <p className="text-muted-foreground mb-4">
                   No products available for this brand yet.
                 </p>
-                <Link href="/products">
+                <Link href="/shop">
                   <Button>Browse All Products</Button>
                 </Link>
               </div>
@@ -137,12 +155,12 @@ const BrandPage = () => {
           </div>
         </section>
 
-        {/* Explore Other Brands */}
+        {/* Explore Categories */}
         <section className="py-16">
           <div className="container-luxury">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl font-bold">Explore Other Brands</h2>
-              <Link href="/brands">
+              <h2 className="text-2xl font-bold">Explore Categories</h2>
+              <Link href="/shop">
                 <Button variant="outline" className="gap-2">
                   View All
                   <ArrowRight className="w-4 h-4" />
@@ -150,22 +168,20 @@ const BrandPage = () => {
               </Link>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {brands
-                .filter((b) => b.id !== brand.id)
-                .map((b) => (
-                  <Link
-                    key={b.id}
-                    href={`/brand/${b.id}`}
-                    className="p-6 bg-card rounded-2xl border border-border hover:shadow-medium transition-all text-center group"
-                  >
-                    <h3 className="font-medium group-hover:text-muted-foreground transition-colors">
-                      {b.name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {b.productCount} products
-                    </p>
-                  </Link>
-                ))}
+              {categories.slice(0, 4).map((category) => (
+                <Link
+                  key={category.id}
+                  href={`/category/${category.slug}`}
+                  className="p-6 bg-card rounded-2xl border border-border hover:shadow-medium transition-all text-center group"
+                >
+                  <h3 className="font-medium group-hover:text-muted-foreground transition-colors">
+                    {category.name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    View products
+                  </p>
+                </Link>
+              ))}
             </div>
           </div>
         </section>

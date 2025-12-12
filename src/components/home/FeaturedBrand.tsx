@@ -1,16 +1,20 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/products/ProductCard";
-import { products, brands } from "@/data/products";
+import { useProductsWithParams } from "@/hooks/use-product";
 import { useRef } from "react";
 import Link from "next/link";
 
 export const FeaturedBrand = () => {
-  const brand = brands[0]; // Beauty of Joseon
-  const brandProducts = products.filter((p) => p.brand === brand.name).slice(0, 4);
+  const { data, isLoading } = useProductsWithParams({
+    is_featured: true,
+    page_size: 6,
+  });
+
+  const featuredProducts = data?.results || [];
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: "left" | "right") => {
@@ -35,12 +39,14 @@ export const FeaturedBrand = () => {
         >
           <div className="space-y-4">
             <div className="inline-flex items-center gap-3 px-4 py-2 bg-rose rounded-full">
-              <span className="text-sm font-medium">Featured Brand</span>
+              <span className="text-sm font-medium">Featured Collection</span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold">{brand.name}</h2>
-            <p className="text-muted-foreground max-w-md">{brand.description}</p>
+            <h2 className="text-3xl md:text-4xl font-bold">Staff Picks</h2>
+            <p className="text-muted-foreground max-w-md">
+              Handpicked selections from our beauty experts. These products are loved by our team.
+            </p>
           </div>
-          <Link href={`/brand/${brand.id}`}>
+          <Link href="/shop?is_featured=true">
             <Button variant="outline" className="group">
               Explore All
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -67,16 +73,26 @@ export const FeaturedBrand = () => {
             <ChevronRight className="w-5 h-5" />
           </Button>
 
-          <div
-            ref={scrollRef}
-            className="flex gap-6 overflow-x-auto hide-scrollbar pb-4"
-          >
-            {brandProducts.map((product, index) => (
-              <div key={product.id} className="min-w-[280px] md:min-w-[300px]">
-                <ProductCard product={product} index={index} />
-              </div>
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : featuredProducts.length > 0 ? (
+            <div
+              ref={scrollRef}
+              className="flex gap-6 overflow-x-auto hide-scrollbar pb-4"
+            >
+              {featuredProducts.map((product, index) => (
+                <div key={product.id} className="min-w-[280px] md:min-w-[300px]">
+                  <ProductCard product={product} index={index} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-muted-foreground py-12">
+              No featured products available.
+            </p>
+          )}
         </div>
       </div>
     </section>

@@ -3,27 +3,42 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Mail, Lock, User, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
+import { useAuth } from "@/hooks/use-auth";
 
 const AuthPage = () => {
+  const { login, signup, isLoading } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
+    first_name: "",
+    last_name: "",
     email: "",
     password: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success(isLogin ? "Welcome back!" : "Account created!", {
-      description: isLogin
-        ? "You've successfully signed in."
-        : "Check your email to verify your account.",
-    });
+    
+    try {
+      if (isLogin) {
+        await login({
+          email: formData.email,
+          password: formData.password,
+        });
+      } else {
+        await signup({
+          email: formData.email,
+          password: formData.password,
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+        });
+      }
+    } catch {
+      // Error is already handled in the hook with toast
+    }
   };
 
   return (
@@ -76,18 +91,34 @@ const AuthPage = () => {
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-4">
                 {!isLogin && (
-                  <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <input
-                      type="text"
-                      placeholder="Full name"
-                      value={formData.name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
-                      }
-                      className="w-full pl-12 pr-4 py-4 bg-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-ring"
-                    />
-                  </div>
+                  <>
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <input
+                        type="text"
+                        placeholder="First name"
+                        value={formData.first_name}
+                        onChange={(e) =>
+                          setFormData({ ...formData, first_name: e.target.value })
+                        }
+                        required
+                        className="w-full pl-12 pr-4 py-4 bg-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                    </div>
+                    <div className="relative">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                      <input
+                        type="text"
+                        placeholder="Last name"
+                        value={formData.last_name}
+                        onChange={(e) =>
+                          setFormData({ ...formData, last_name: e.target.value })
+                        }
+                        required
+                        className="w-full pl-12 pr-4 py-4 bg-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                    </div>
+                  </>
                 )}
 
                 <div className="relative">
@@ -99,6 +130,7 @@ const AuthPage = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
+                    required
                     className="w-full pl-12 pr-4 py-4 bg-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                 </div>
@@ -112,6 +144,8 @@ const AuthPage = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, password: e.target.value })
                     }
+                    required
+                    minLength={6}
                     className="w-full pl-12 pr-12 py-4 bg-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                   <button
@@ -138,9 +172,23 @@ const AuthPage = () => {
                   </div>
                 )}
 
-                <Button type="submit" className="w-full gap-2" size="lg">
-                  {isLogin ? "Sign In" : "Create Account"}
-                  <ArrowRight className="w-5 h-5" />
+                <Button 
+                  type="submit" 
+                  className="w-full gap-2" 
+                  size="lg"
+                  disabled={isLoading}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      {isLogin ? "Signing In..." : "Creating Account..."}
+                    </>
+                  ) : (
+                    <>
+                      {isLogin ? "Sign In" : "Create Account"}
+                      <ArrowRight className="w-5 h-5" />
+                    </>
+                  )}
                 </Button>
               </form>
 
@@ -155,7 +203,7 @@ const AuthPage = () => {
 
               {/* Social Login */}
               <div className="grid grid-cols-2 gap-3">
-                <Button variant="outline" className="gap-2">
+                <Button variant="outline" className="gap-2" disabled={isLoading}>
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
                     <path
                       fill="currentColor"
@@ -176,7 +224,7 @@ const AuthPage = () => {
                   </svg>
                   Google
                 </Button>
-                <Button variant="outline" className="gap-2">
+                <Button variant="outline" className="gap-2" disabled={isLoading}>
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z" />
                   </svg>

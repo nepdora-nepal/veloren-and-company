@@ -2,12 +2,19 @@
 
 import { motion } from "framer-motion";
 import { ProductCard } from "@/components/products/ProductCard";
-import { bestSellers } from "@/data/products";
+import { useProductsWithParams } from "@/hooks/use-product";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 export const BestSellers = () => {
+  const { data, isLoading } = useProductsWithParams({
+    is_popular: true,
+    page_size: 8,
+  });
+
+  const bestSellers = data?.results || [];
+
   return (
     <section className="py-16 md:py-24">
       <div className="container-luxury">
@@ -28,11 +35,21 @@ export const BestSellers = () => {
         </motion.div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-12">
-          {bestSellers.map((product, index) => (
-            <ProductCard key={product.id} product={product} index={index} />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : bestSellers.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-12">
+            {bestSellers.map((product, index) => (
+              <ProductCard key={product.id} product={product} index={index} />
+            ))}
+          </div>
+        ) : (
+          <p className="text-center text-muted-foreground py-12">
+            No best sellers available at the moment.
+          </p>
+        )}
 
         {/* CTA */}
         <motion.div
@@ -41,7 +58,7 @@ export const BestSellers = () => {
           viewport={{ once: true }}
           className="text-center"
         >
-          <Link href="/products?filter=bestsellers">
+          <Link href="/shop?is_popular=true">
             <Button variant="outline" size="lg" className="group">
               View All Best Sellers
               <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />

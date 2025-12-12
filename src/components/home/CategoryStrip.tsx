@@ -2,15 +2,19 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { categories } from "@/data/products";
+import Image from "next/image";
+import { useCategories } from "@/hooks/use-product";
 import { useRef, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const CategoryStrip = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const { data, isLoading } = useCategories();
+  const categories = data?.results || [];
 
   const checkScroll = () => {
     if (scrollRef.current) {
@@ -30,6 +34,20 @@ export const CategoryStrip = () => {
       setTimeout(checkScroll, 300);
     }
   };
+
+  if (isLoading) {
+    return (
+      <section className="py-8 bg-card border-y border-border">
+        <div className="container-luxury flex items-center justify-center py-4">
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+        </div>
+      </section>
+    );
+  }
+
+  if (categories.length === 0) {
+    return null;
+  }
 
   return (
     <section className="py-8 bg-card border-y border-border">
@@ -74,9 +92,20 @@ export const CategoryStrip = () => {
                   href={`/category/${category.slug}`}
                   className="flex flex-col items-center gap-2 px-6 py-4 bg-secondary rounded-2xl min-w-[100px] hover:bg-accent transition-all duration-300 group"
                 >
-                  <span className="text-2xl group-hover:scale-110 transition-transform">
-                    {category.icon}
-                  </span>
+                  {category.image ? (
+                    <div className="w-8 h-8 relative">
+                      <Image
+                        src={category.image}
+                        alt={category.name}
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                  ) : (
+                    <span className="text-2xl group-hover:scale-110 transition-transform">
+                      📦
+                    </span>
+                  )}
                   <span className="text-sm font-medium whitespace-nowrap">
                     {category.name}
                   </span>

@@ -3,38 +3,42 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { SlidersHorizontal, ChevronDown, Grid3X3, LayoutGrid, X } from "lucide-react";
+import { SlidersHorizontal, ChevronDown, Grid3X3, LayoutGrid, X, Loader2 } from "lucide-react";
 import { ProductCard } from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
-import { products, categories } from "@/data/products";
+import { useProductsWithParams, useCategories } from "@/hooks/use-product";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const skinTypes = ["All Skin Types", "Oily", "Dry", "Combination", "Sensitive", "Normal"];
 const priceRanges = ["Under $15", "$15 - $30", "$30 - $50", "Over $50"];
-const brandFilters = ["Beauty of Joseon", "COSRX", "Glow Recipe", "Laneige", "The Ordinary"];
 
 const CategoryPage = () => {
   const params = useParams();
-  const slug = params?.slug as string; // Handle potentially undefined or array
+  const slug = params?.slug as string;
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState("popular");
   const [gridCols, setGridCols] = useState<3 | 4>(4);
   const [selectedFilters, setSelectedFilters] = useState<{
     skinTypes: string[];
     priceRanges: string[];
-    brands: string[];
   }>({
     skinTypes: [],
     priceRanges: [],
-    brands: [],
   });
 
+  // Fetch category data
+  const { data: categoriesData } = useCategories();
+  const categories = categoriesData?.results || [];
   const category = categories.find((c) => c.slug === slug);
-  const filteredProducts = slug
-    ? products.filter((p) => p.category.toLowerCase() === slug)
-    : products;
 
-  const toggleFilter = (type: "skinTypes" | "priceRanges" | "brands", value: string) => {
+  // Fetch products by category
+  const { data: productsData, isLoading } = useProductsWithParams({
+    category: slug,
+    page_size: 50,
+  });
+  const filteredProducts = productsData?.results || [];
+
+  const toggleFilter = (type: "skinTypes" | "priceRanges", value: string) => {
     setSelectedFilters((prev) => ({
       ...prev,
       [type]: prev[type].includes(value)
@@ -44,13 +48,12 @@ const CategoryPage = () => {
   };
 
   const clearFilters = () => {
-    setSelectedFilters({ skinTypes: [], priceRanges: [], brands: [] });
+    setSelectedFilters({ skinTypes: [], priceRanges: [] });
   };
 
   const activeFilterCount =
     selectedFilters.skinTypes.length +
-    selectedFilters.priceRanges.length +
-    selectedFilters.brands.length;
+    selectedFilters.priceRanges.length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -132,25 +135,24 @@ const CategoryPage = () => {
                   </div>
                 </div>
 
-                {/* Brand Filter */}
+                {/* Categories Filter */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium text-muted-foreground">
-                    Brand
+                    Categories
                   </h4>
                   <div className="space-y-2">
-                    {brandFilters.map((brand) => (
-                      <label
-                        key={brand}
-                        className="flex items-center gap-3 cursor-pointer group"
+                    {categories.map((cat) => (
+                      <a
+                        key={cat.id}
+                        href={`/category/${cat.slug}`}
+                        className={`block text-sm transition-colors ${
+                          cat.slug === slug
+                            ? "text-foreground font-medium"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
                       >
-                        <Checkbox
-                          checked={selectedFilters.brands.includes(brand)}
-                          onCheckedChange={() => toggleFilter("brands", brand)}
-                        />
-                        <span className="text-sm group-hover:text-foreground transition-colors">
-                          {brand}
-                        </span>
-                      </label>
+                        {cat.name}
+                      </a>
                     ))}
                   </div>
                 </div>
@@ -249,20 +251,23 @@ const CategoryPage = () => {
               )}
 
               {/* Products Grid */}
-              <div
-                className={`grid gap-4 md:gap-6 ${
-                  gridCols === 3
-                    ? "grid-cols-2 md:grid-cols-3"
-                    : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-                }`}
-              >
-                {filteredProducts.map((product, index) => (
-                  <ProductCard key={product.id} product={product} index={index} />
-                ))}
-              </div>
-
-              {/* Empty State */}
-              {filteredProducts.length === 0 && (
+              {isLoading ? (
+                <div className="flex items-center justify-center py-16">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+              ) : filteredProducts.length > 0 ? (
+                <div
+                  className={`grid gap-4 md:gap-6 ${
+                    gridCols === 3
+                      ? "grid-cols-2 md:grid-cols-3"
+                      : "grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                  }`}
+                >
+                  {filteredProducts.map((product, index) => (
+                    <ProductCard key={product.id} product={product} index={index} />
+                  ))}
+                </div>
+              ) : (
                 <div className="text-center py-16">
                   <p className="text-muted-foreground">
                     No products found. Try adjusting your filters.

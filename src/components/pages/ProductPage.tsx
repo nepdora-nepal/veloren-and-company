@@ -3,22 +3,20 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import {
   Heart,
   ShoppingBag,
-  Star,
   Minus,
   Plus,
-  Check,
   Truck,
   RotateCcw,
   Shield,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ProductCard } from "@/components/products/ProductCard";
-import { products } from "@/data/products";
 import {
   Accordion,
   AccordionContent,
@@ -26,31 +24,68 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { toast } from "sonner";
+import { useProduct, useProductsWithParams } from "@/hooks/use-product";
+import { ProductCard } from "@/components/products/ProductCard";
 
 const ProductPage = () => {
   const params = useParams();
-  const id = params?.id as string;
-  const product = products.find((p) => p.id === id) || products[0];
+  const slug = params?.slug as string;
+
+  const { data: product, isLoading, error } = useProduct(slug);
+  const { data: relatedData } = useProductsWithParams({
+    category_id: product?.category?.id,
+    page_size: 4,
+  });
+
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
-  const relatedProducts = products
-    .filter((p) => p.category === product.category && p.id !== product.id)
-    .slice(0, 4);
+  // Build images array from product data
+  const images: string[] = product
+    ? [
+        product.thumbnail_image,
+        ...(product.images?.map((img) => img.image) || []),
+      ].filter((img): img is string => Boolean(img))
+    : [];
 
-  const images = [
-    product.image,
-    "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?w=600&h=600&fit=crop",
-    "https://images.unsplash.com/photo-1556228720-195a672e8a03?w=600&h=600&fit=crop",
-  ];
+  // Filter out current product from related products
+  const relatedProducts =
+    relatedData?.results?.filter((p) => p.id !== product?.id) || [];
 
   const handleAddToCart = () => {
+    if (!product) return;
     toast.success("Added to bag", {
       description: `${quantity}x ${product.name} added to your bag.`,
     });
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !product) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+        <p className="text-muted-foreground">Product not found</p>
+        <Button asChild>
+          <Link href="/shop">Back to Shop</Link>
+        </Button>
+      </div>
+    );
+  }
+
+  const price = parseFloat(product.price);
+  const marketPrice = product.market_price
+    ? parseFloat(product.market_price)
+    : null;
+  const discount = marketPrice ? marketPrice - price : 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -63,11 +98,22 @@ const ProductPage = () => {
             </Link>
             <ChevronRight className="w-4 h-4" />
             <Link
-              href={`/category/${product.category.toLowerCase()}`}
+              href="/shop"
               className="hover:text-foreground transition-colors"
             >
-              {product.category}
+              Shop
             </Link>
+            {product.category && (
+              <>
+                <ChevronRight className="w-4 h-4" />
+                <Link
+                  href={`/category/${product.category.slug}`}
+                  className="hover:text-foreground transition-colors"
+                >
+                  {product.category.name}
+                </Link>
+              </>
+            )}
             <ChevronRight className="w-4 h-4" />
             <span className="text-foreground">{product.name}</span>
           </nav>
@@ -80,37 +126,52 @@ const ProductPage = () => {
               className="space-y-4"
             >
               {/* Main Image */}
-              <div className="aspect-square bg-secondary rounded-3xl overflow-hidden">
-                <motion.img
-                  key={selectedImage}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  src={images[selectedImage]}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
+              <div className="aspect-square bg-secondary rounded-3xl overflow-hidden relative">
+                {images[selectedImage] ? (
+                  <motion.div
+                    key={selectedImage}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="w-full h-full relative"
+                  >
+                    <Image
+                      src={images[selectedImage]}
+                      alt={product.thumbnail_alt_description || product.name}
+                      fill
+                      className="object-cover"
+                      priority
+                    />
+                  </motion.div>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                    No image available
+                  </div>
+                )}
               </div>
 
               {/* Thumbnails */}
-              <div className="flex gap-3">
-                {images.map((img, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedImage(index)}
-                    className={`w-20 h-20 rounded-xl overflow-hidden transition-all ${
-                      selectedImage === index
-                        ? "ring-2 ring-primary ring-offset-2"
-                        : "opacity-60 hover:opacity-100"
-                    }`}
-                  >
-                    <img
-                      src={img}
-                      alt={`${product.name} ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
+              {images.length > 1 && (
+                <div className="flex gap-3">
+                  {images.map((img, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedImage(index)}
+                      className={`w-20 h-20 rounded-xl overflow-hidden transition-all relative ${
+                        selectedImage === index
+                          ? "ring-2 ring-primary ring-offset-2"
+                          : "opacity-60 hover:opacity-100"
+                      }`}
+                    >
+                      <Image
+                        src={img}
+                        alt={`${product.name} ${index + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
             </motion.div>
 
             {/* Product Info */}
@@ -119,19 +180,21 @@ const ProductPage = () => {
               animate={{ opacity: 1, x: 0 }}
               className="space-y-6"
             >
-              {/* Brand & Badges */}
+              {/* Category & Badges */}
               <div className="flex items-center gap-3">
-                <span className="text-sm text-muted-foreground">
-                  {product.brand}
-                </span>
-                {product.isBestSeller && (
-                  <span className="px-3 py-1 bg-rose text-rose-foreground text-xs font-medium rounded-full">
-                    BEST SELLER
+                {product.category && (
+                  <span className="text-sm text-muted-foreground">
+                    {product.category.name}
                   </span>
                 )}
-                {product.isNew && (
+                {product.is_popular && (
+                  <span className="px-3 py-1 bg-rose text-rose-foreground text-xs font-medium rounded-full">
+                    POPULAR
+                  </span>
+                )}
+                {product.is_featured && (
                   <span className="px-3 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-full">
-                    NEW
+                    FEATURED
                   </span>
                 )}
               </div>
@@ -139,78 +202,47 @@ const ProductPage = () => {
               {/* Title */}
               <h1 className="text-3xl md:text-4xl font-bold">{product.name}</h1>
 
-              {/* Rating */}
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-5 h-5 ${
-                        i < Math.floor(product.rating)
-                          ? "fill-foreground text-foreground"
-                          : "text-border"
-                      }`}
-                    />
-                  ))}
-                </div>
-                <span className="font-medium">{product.rating}</span>
-                <span className="text-muted-foreground">
-                  ({product.reviews.toLocaleString()} reviews)
-                </span>
-              </div>
-
               {/* Price */}
               <div className="flex items-baseline gap-3">
                 <span className="text-3xl font-bold">
-                  ${product.price.toFixed(2)}
+                  ${price.toFixed(2)}
                 </span>
-                {product.originalPrice && (
+                {marketPrice && marketPrice > price && (
                   <>
                     <span className="text-xl text-muted-foreground line-through">
-                      ${product.originalPrice.toFixed(2)}
+                      ${marketPrice.toFixed(2)}
                     </span>
                     <span className="px-2 py-1 bg-peach text-peach-foreground text-sm font-medium rounded-lg">
-                      Save $
-                      {(product.originalPrice - product.price).toFixed(2)}
+                      Save ${discount.toFixed(2)}
                     </span>
                   </>
                 )}
               </div>
 
-              {/* Skin Type Tags */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">
-                  Suitable for
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {product.skinTypes.map((type) => (
-                    <span
-                      key={type}
-                      className="px-3 py-1.5 bg-secondary rounded-full text-sm"
-                    >
-                      {type} Skin
+              {/* Stock Status */}
+              {product.track_stock && (
+                <div className="flex items-center gap-2">
+                  {product.stock && product.stock > 0 ? (
+                    <span className="text-sm text-green-600">
+                      ✓ In Stock ({product.stock} available)
                     </span>
-                  ))}
+                  ) : (
+                    <span className="text-sm text-red-600">Out of Stock</span>
+                  )}
                 </div>
-              </div>
+              )}
 
-              {/* Key Benefits */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">
-                  Key Benefits
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {product.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-accent rounded-full text-sm"
-                    >
-                      <Check className="w-3.5 h-3.5" />
-                      {tag}
-                    </span>
-                  ))}
+              {/* Subcategory */}
+              {product.sub_category && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Category
+                  </p>
+                  <span className="px-3 py-1.5 bg-secondary rounded-full text-sm">
+                    {product.sub_category.name}
+                  </span>
                 </div>
-              </div>
+              )}
 
               {/* Quantity & Add to Cart */}
               <div className="flex items-center gap-4 pt-4">
@@ -234,6 +266,7 @@ const ProductPage = () => {
                   onClick={handleAddToCart}
                   className="flex-1 gap-2"
                   size="lg"
+                  disabled={product.track_stock && (!product.stock || product.stock < 1)}
                 >
                   <ShoppingBag className="w-5 h-5" />
                   Add to Bag
@@ -255,10 +288,12 @@ const ProductPage = () => {
 
               {/* Trust Badges */}
               <div className="grid grid-cols-3 gap-4 pt-6 border-t border-border">
-                <div className="flex items-center gap-2 text-sm">
-                  <Truck className="w-5 h-5 text-muted-foreground" />
-                  <span>Free shipping $50+</span>
-                </div>
+                {product.fast_shipping && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Truck className="w-5 h-5 text-muted-foreground" />
+                    <span>Fast Shipping</span>
+                  </div>
+                )}
                 <div className="flex items-center gap-2 text-sm">
                   <RotateCcw className="w-5 h-5 text-muted-foreground" />
                   <span>Easy returns</span>
@@ -274,40 +309,26 @@ const ProductPage = () => {
                 <AccordionItem value="description">
                   <AccordionTrigger>Description</AccordionTrigger>
                   <AccordionContent>
-                    <p className="text-muted-foreground">
-                      A lightweight, fast-absorbing serum that delivers intense
-                      hydration while brightening and evening out skin tone. Formulated
-                      with traditional Korean ingredients for a natural, radiant glow.
-                    </p>
+                    {product.description ? (
+                      <div
+                        className="text-muted-foreground prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: product.description }}
+                      />
+                    ) : (
+                      <p className="text-muted-foreground">
+                        No description available.
+                      </p>
+                    )}
                   </AccordionContent>
                 </AccordionItem>
-                <AccordionItem value="how-to-use">
-                  <AccordionTrigger>How to Use</AccordionTrigger>
-                  <AccordionContent>
-                    <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-                      <li>After cleansing and toning, dispense 2-3 drops</li>
-                      <li>Gently pat onto face and neck</li>
-                      <li>Follow with moisturizer</li>
-                      <li>Use morning and evening for best results</li>
-                    </ol>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="ingredients">
-                  <AccordionTrigger>Key Ingredients</AccordionTrigger>
-                  <AccordionContent>
-                    <ul className="space-y-2 text-muted-foreground">
-                      <li>
-                        <strong>Rice Bran Water:</strong> Brightens and nourishes
-                      </li>
-                      <li>
-                        <strong>Alpha Arbutin:</strong> Fades dark spots
-                      </li>
-                      <li>
-                        <strong>Niacinamide:</strong> Evens skin tone
-                      </li>
-                    </ul>
-                  </AccordionContent>
-                </AccordionItem>
+                {product.warranty && (
+                  <AccordionItem value="warranty">
+                    <AccordionTrigger>Warranty</AccordionTrigger>
+                    <AccordionContent>
+                      <p className="text-muted-foreground">{product.warranty}</p>
+                    </AccordionContent>
+                  </AccordionItem>
+                )}
                 <AccordionItem value="shipping">
                   <AccordionTrigger>Shipping & Returns</AccordionTrigger>
                   <AccordionContent>
@@ -325,10 +346,14 @@ const ProductPage = () => {
           {/* Related Products */}
           {relatedProducts.length > 0 && (
             <section>
-              <h2 className="text-2xl font-bold mb-8">Pairs Well With</h2>
+              <h2 className="text-2xl font-bold mb-8">You May Also Like</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                {relatedProducts.map((product, index) => (
-                  <ProductCard key={product.id} product={product} index={index} />
+                {relatedProducts.slice(0, 4).map((relatedProduct, index) => (
+                  <ProductCard
+                    key={relatedProduct.id}
+                    product={relatedProduct}
+                    index={index}
+                  />
                 ))}
               </div>
             </section>
