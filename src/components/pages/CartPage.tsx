@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import Image from "next/image";
 
 const CartPage = () => {
-  const { items, updateQuantity, removeFromCart, totalPrice } = useCart();
+  const { cartItems: items, updateQuantity, removeFromCart, totalPrice } = useCart();
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
 
@@ -89,7 +89,7 @@ const CartPage = () => {
                   <Link href={`/product/${item.product.id}`} className="shrink-0">
                     <div className="w-24 h-24 md:w-32 md:h-32 rounded-xl overflow-hidden bg-secondary">
                       <Image
-                        src={item.product.image}
+                        src={item.product.thumbnail_image || "/placeholder.png"}
                         alt={item.product.name}
                         width={100}
                         height={100}
@@ -100,9 +100,10 @@ const CartPage = () => {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between gap-2">
-                      <div>
+                       <div>
                         <p className="text-xs text-muted-foreground mb-1">
-                          {item.product.brand}
+                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                          {(item.product as any).brand?.name || "Brand"}
                         </p>
                         <Link href={`/product/${item.product.id}`}>
                           <h3 className="font-medium hover:text-muted-foreground transition-colors line-clamp-2">
@@ -139,11 +140,11 @@ const CartPage = () => {
 
                       <div className="text-right">
                         <p className="font-bold">
-                          ${(item.product.price * item.quantity).toFixed(2)}
+                          ${(parseFloat(item.product.price) * item.quantity).toFixed(2)}
                         </p>
                         {item.quantity > 1 && (
                           <p className="text-xs text-muted-foreground">
-                            ${item.product.price.toFixed(2)} each
+                            ${parseFloat(item.product.price).toFixed(2)} each
                           </p>
                         )}
                       </div>

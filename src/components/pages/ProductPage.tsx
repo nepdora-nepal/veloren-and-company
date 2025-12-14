@@ -28,6 +28,7 @@ import { useProduct, useProductsWithParams } from "@/hooks/use-product";
 import { ProductCard } from "@/components/products/ProductCard";
 import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "@/hooks/use-wishlist";
 import { useAuth } from "@/hooks/use-auth";
+import { useCart } from "@/contexts/CartContext";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 
@@ -87,8 +88,11 @@ const ProductPage = () => {
   const relatedProducts =
     relatedData?.results?.filter((p) => p.id !== product?.id) || [];
 
+  const { addToCart } = useCart();
+
   const handleAddToCart = () => {
     if (!product) return;
+    addToCart(product, quantity);
     toast.success("Added to bag", {
       description: `${quantity}x ${product.name} added to your bag.`,
     });

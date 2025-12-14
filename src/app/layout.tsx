@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
+import { CartSheet } from "@/components/cart/CartSheet";
 import { Providers } from "./providers";
 
 const geistSans = Geist({
@@ -34,6 +35,7 @@ export default function RootLayout({
         <Providers>
           <Toaster />
           <Navbar />
+          <CartSheet />
           {children}
           <Footer />
         </Providers>

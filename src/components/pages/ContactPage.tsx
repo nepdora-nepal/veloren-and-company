@@ -6,6 +6,8 @@ import { Mail, Phone, MapPin, Clock, Send } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useSubmitContactForm } from "@/hooks/use-contact";
+import { PhoneInput } from "../ui/phone-input";
 
 const contactInfo = [
   {
@@ -38,16 +40,25 @@ const ContactPage = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    subject: "",
+    phone_number: "",
     message: "",
   });
 
+  const { mutate: submitContact, isPending } = useSubmitContactForm();
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Message sent!", {
-      description: "We'll get back to you as soon as possible.",
+    submitContact(formData, {
+      onSuccess: () => {
+        toast.success("Message sent!", {
+            description: "We'll get back to you as soon as possible.",
+        });
+        setFormData({ name: "", email: "", phone_number: "", message: "" });
+      },
+      onError: () => {
+          // Error handling is done in the hook via toast, but we can prevent reset here
+      }
     });
-    setFormData({ name: "", email: "", subject: "", message: "" });
   };
 
   return (
@@ -95,13 +106,11 @@ const ContactPage = () => {
                       required
                     />
                   </div>
-                  <input
-                    type="text"
-                    placeholder="Subject"
-                    value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    className="w-full px-4 py-4 bg-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-ring"
-                    required
+                  <PhoneInput
+                    placeholder="Phone Number"
+                    value={formData.phone_number}
+                    onChange={(value: string | undefined) => setFormData({ ...formData, phone_number: value || "" })}
+                    defaultCountry="NP"
                   />
                   <textarea
                     placeholder="Your message"
@@ -111,9 +120,15 @@ const ContactPage = () => {
                     className="w-full px-4 py-4 bg-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-ring resize-none"
                     required
                   />
-                  <Button type="submit" className="gap-2">
-                    <Send className="w-4 h-4" />
-                    Send Message
+                  <Button type="submit" className="gap-2" disabled={isPending}>
+                    {isPending ? (
+                        <>Sending...</>
+                    ) : (
+                        <>
+                            <Send className="w-4 h-4" />
+                            Send Message
+                        </>
+                    )}
                   </Button>
                 </form>
               </div>

@@ -12,7 +12,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 const skinTypes = ["All Skin Types", "Oily", "Dry", "Combination", "Sensitive", "Normal"];
 const priceRanges = ["Under $15", "$15 - $30", "$30 - $50", "Over $50"];
 
-const CategoryPage = () => {
+interface CategoryPageProps {
+  type?: "category" | "featured" | "popular";
+}
+
+const CategoryPage = ({ type = "category" }: CategoryPageProps) => {
   const params = useParams();
   const slug = params?.slug as string;
   const [showFilters, setShowFilters] = useState(false);
@@ -26,24 +30,29 @@ const CategoryPage = () => {
     priceRanges: [],
   });
 
-  // Fetch category data
+  // Fetch category data (only if type is "category")
   const { data: categoriesData } = useCategories();
   const categories = categoriesData?.results || [];
-  const category = categories.find((c) => c.slug === slug);
+  const category = type === "category" ? categories.find((c) => c.slug === slug) : null;
 
-  // Fetch products by category
-  const { data: productsData, isLoading } = useProductsWithParams({
-    category: slug,
+  // Determine query params based on type
+  const queryParams = {
     page_size: 50,
-  });
+    ...(type === "category" ? { category: slug } : {}),
+    ...(type === "featured" ? { is_featured: true } : {}),
+    ...(type === "popular" ? { is_popular: true } : {}),
+  };
+
+  // Fetch products
+  const { data: productsData, isLoading } = useProductsWithParams(queryParams);
   const filteredProducts = productsData?.results || [];
 
-  const toggleFilter = (type: "skinTypes" | "priceRanges", value: string) => {
+  const toggleFilter = (filterType: "skinTypes" | "priceRanges", value: string) => {
     setSelectedFilters((prev) => ({
       ...prev,
-      [type]: prev[type].includes(value)
-        ? prev[type].filter((v) => v !== value)
-        : [...prev[type], value],
+      [filterType]: prev[filterType].includes(value)
+        ? prev[filterType].filter((v) => v !== value)
+        : [...prev[filterType], value],
     }));
   };
 
@@ -54,6 +63,13 @@ const CategoryPage = () => {
   const activeFilterCount =
     selectedFilters.skinTypes.length +
     selectedFilters.priceRanges.length;
+
+  // Determine Page Title
+  const getPageTitle = () => {
+      if (type === "featured") return "Featured Products";
+      if (type === "popular") return "Popular Products";
+      return category ? category.name : "All Products";
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -66,7 +82,7 @@ const CategoryPage = () => {
             className="mb-8"
           >
             <h1 className="text-3xl md:text-4xl font-bold mb-2">
-              {category ? category.name : "All Products"}
+              {getPageTitle()}
             </h1>
             <p className="text-muted-foreground">
               {filteredProducts.length} products
@@ -135,7 +151,7 @@ const CategoryPage = () => {
                   </div>
                 </div>
 
-                {/* Categories Filter */}
+                {/* Categories Filter - Only show if in category mode or maybe show to allow navigation away */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium text-muted-foreground">
                     Categories
@@ -146,7 +162,7 @@ const CategoryPage = () => {
                         key={cat.id}
                         href={`/category/${cat.slug}`}
                         className={`block text-sm transition-colors ${
-                          cat.slug === slug
+                          type === "category" && cat.slug === slug
                             ? "text-foreground font-medium"
                             : "text-muted-foreground hover:text-foreground"
                         }`}

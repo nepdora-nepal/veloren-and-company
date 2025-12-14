@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import Image from "next/image";
 
 const CheckoutPage = () => {
-  const { items, totalPrice, clearCart } = useCart();
+  const { cartItems, totalPrice, clearCart } = useCart();
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -56,7 +56,7 @@ const CheckoutPage = () => {
     { number: 3, label: "Payment" },
   ];
 
-  if (items.length === 0) {
+  if (cartItems.length === 0) {
     return (
       <div className="min-h-screen bg-background">
 
@@ -313,10 +313,10 @@ const CheckoutPage = () => {
                 <h2 className="text-lg font-bold mb-4">Order Summary</h2>
 
                 <div className="space-y-4 mb-6">
-                  {items.map(({ product, quantity }) => (
+                  {cartItems.map(({ product, quantity }) => (
                     <div key={product.id} className="flex gap-3">
                       <div className="relative w-16 h-16 bg-secondary rounded-xl overflow-hidden shrink-0">
-                        <Image src={product.image} alt={product.name}
+                        <Image src={product.thumbnail_image || "/placeholder.jpg"} alt={product.name}
                         width={64}
                         height={64}
                         className="w-full h-full object-cover" />
@@ -326,9 +326,9 @@ const CheckoutPage = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium line-clamp-2">{product.name}</p>
-                        <p className="text-sm text-muted-foreground">{product.brand}</p>
+
                       </div>
-                      <p className="font-medium">${(product.price * quantity).toFixed(2)}</p>
+                      <p className="font-medium">${(parseFloat(product.price) * quantity).toFixed(2)}</p>
                     </div>
                   ))}
                 </div>

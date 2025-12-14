@@ -8,7 +8,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 export const CartSheet = () => {
-  const { items, isOpen, closeCart, removeFromCart, updateQuantity, totalPrice, totalItems } = useCart();
+  const { cartItems: items, isOpen, closeCart, removeFromCart, updateQuantity, totalPrice, totalItems } = useCart();
 
   return (
     <Sheet open={isOpen} onOpenChange={closeCart}>
@@ -39,7 +39,7 @@ export const CartSheet = () => {
                   {/* Product Image */}
                   <div className="w-20 h-20 bg-secondary rounded-xl overflow-hidden shrink-0">
                     <Image
-                      src={item.product.image}
+                      src={item.product.thumbnail_image || "/placeholder.png"}
                       alt={item.product.name}
                       width={80}
                       height={80}
@@ -51,7 +51,10 @@ export const CartSheet = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="text-xs text-muted-foreground">{item.product.brand}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                          {(item.product as any).brand?.name || "Brand"}
+                        </p>
                         <h4 className="font-medium text-sm leading-tight truncate">
                           {item.product.name}
                         </h4>
@@ -84,7 +87,7 @@ export const CartSheet = () => {
 
                       {/* Price */}
                       <span className="font-semibold text-sm">
-                        ${(item.product.price * item.quantity).toFixed(2)}
+                        ${(parseFloat(item.product.price) * item.quantity).toFixed(2)}
                       </span>
                     </div>
                   </div>

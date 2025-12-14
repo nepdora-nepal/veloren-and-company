@@ -1,6 +1,10 @@
+"use client";
 import Link from "next/link";
 import { Instagram, Facebook, Twitter, Youtube, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNewsletter } from "@/hooks/use-newsletter";
+import { useState } from "react";
+import { toast } from "sonner";
 
 const footerLinks = {
   shop: [
@@ -33,6 +37,21 @@ const trustBadges = [
 ];
 
 export const Footer = () => {
+  const [email, setEmail] = useState("");
+  const { mutate: subscribe, isPending } = useNewsletter();
+
+  const handleSubscribe = () => {
+    if (!email) {
+      toast.error("Please enter your email address");
+      return;
+    }
+    subscribe(email, {
+      onSuccess: () => {
+        setEmail("");
+      },
+    });
+  };
+
   return (
     <footer className="bg-card border-t border-border">
       {/* Trust Badges */}
@@ -71,10 +90,17 @@ export const Footer = () => {
                   <input
                     type="email"
                     placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 bg-secondary rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                 </div>
-                <Button>Subscribe</Button>
+                <Button 
+                  onClick={handleSubscribe} 
+                  disabled={isPending}
+                >
+                  {isPending ? "Subscribing..." : "Subscribe"}
+                </Button>
               </div>
               <p className="text-xs text-muted-foreground">
                 Get 10% off your first order when you sign up

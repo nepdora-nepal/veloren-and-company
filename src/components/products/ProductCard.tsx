@@ -8,6 +8,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "@/hooks/use-wishlist";
 import { useAuth } from "@/hooks/use-auth";
+import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -21,6 +22,7 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
   const router = useRouter();
   
   const { isAuthenticated } = useAuth();
+  const { addToCart } = useCart();
   const { data: wishlist } = useWishlist();
   const { mutate: addToWishlist } = useAddToWishlist();
   const { mutate: removeFromWishlist } = useRemoveFromWishlist();
@@ -125,7 +127,10 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
             <motion.button
               onClick={(e) => {
                 e.preventDefault();
-                // TODO: Implement cart functionality for backend products
+                addToCart(product, 1);
+                toast.success("Added to bag", {
+                  description: `${product.name} added to your bag.`,
+                });
               }}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: isHovered ? 1 : 0, y: isHovered ? 0 : 10 }}
