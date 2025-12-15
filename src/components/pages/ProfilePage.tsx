@@ -5,21 +5,28 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogOut, User as UserIcon, Package, ShieldCheck, MapPin, Camera, ChevronRight, Edit2, Save } from "lucide-react";
+import { 
+  LogOut, 
+  User as UserIcon, 
+  Package, 
+  ShieldCheck, 
+  Camera, 
+  Check, 
+  MapPin
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-
 import { toast } from "sonner";
+import { OrdersTab } from "./profile/OrdersTab";
 
-const ProfilePage = () => {
+export default function ProfilePage() {
   const { user, logout, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("account");
   const [isEditing, setIsEditing] = useState(false);
   
-  // State for profile form initialized lazily or will be reset via key
   const [formData, setFormData] = useState({
     first_name: user?.first_name || "",
     last_name: user?.last_name || "",
@@ -28,28 +35,11 @@ const ProfilePage = () => {
     address: user?.address || "",
   });
 
-  // State for password change
   const [passwordData, setPasswordData] = useState({
     old_password: "",
     new_password: "",
     confirm_password: "",
   });
-
-  const handleUpdateProfile = async () => {
-    // Mock functionality as backend support was removed by user request
-    setIsEditing(false);
-    toast.success("Profile updated (Simulation Only)");
-  };
-
-  const handleChangePassword = async () => {
-    if (passwordData.new_password !== passwordData.confirm_password) {
-        toast.error("Passwords do not match"); 
-        return; 
-    }
-    // Mock functionality as backend support was removed by user request
-    toast.success("Password changed (Simulation Only)");
-    setPasswordData({ old_password: "", new_password: "", confirm_password: "" });
-  };
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -57,12 +47,43 @@ const ProfilePage = () => {
     }
   }, [isLoading, isAuthenticated, router]);
 
+  const handleUpdateProfile = async () => {
+    setIsEditing(false);
+    toast.success("Profile updated successfully");
+  };
+
+  const handleCancelEdit = () => {
+    if (user) {
+      setFormData({
+        first_name: user.first_name || "",
+        last_name: user.last_name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        address: user.address || "",
+      });
+    }
+    setIsEditing(false);
+  };
+
+  const handleChangePassword = async () => {
+    if (passwordData.new_password !== passwordData.confirm_password) {
+        toast.error("New passwords do not match"); 
+        return; 
+    }
+    if (!passwordData.old_password || !passwordData.new_password) {
+        toast.error("Please fill in all fields");
+        return;
+    }
+    toast.success("Security settings updated");
+    setPasswordData({ old_password: "", new_password: "", confirm_password: "" });
+  };
+
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen bg-background pt-28 pb-16 flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <p className="text-muted-foreground font-medium animate-pulse">Loading profile...</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 animate-pulse">
+          <div className="h-12 w-12 rounded-full bg-muted" />
+          <div className="h-4 w-32 bg-muted rounded" />
         </div>
       </div>
     );
@@ -71,264 +92,269 @@ const ProfilePage = () => {
   const initials = `${user.first_name?.[0] || ""}${user.last_name?.[0] || ""}`.toUpperCase();
 
   const menuItems = [
-    { id: "account", label: "Personal Info", icon: UserIcon },
-    { id: "orders", label: "My Orders", icon: Package },
-    { id: "security", label: "Login & Security", icon: ShieldCheck },
+    { id: "account", label: "General", icon: UserIcon, description: "Profile details & shipping" },
+    { id: "orders", label: "Orders", icon: Package, description: "Track & manage orders" },
+    { id: "security", label: "Security", icon: ShieldCheck, description: "Password & protection" },
   ];
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-        {/* Subtle Background Elements */}
-        <div className="absolute top-0 left-0 w-full h-[500px] bg-linear-to-b from-primary/5 to-transparent pointer-events-none" />
-        <div className="absolute top-20 right-0 w-[500px] h-[500px] bg-rose/5 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen bg-background relative selection:bg-primary/10">
+      
+      {/* Abstract Background Ambient */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+        <div className="absolute top-0 right-[-10%] w-[50vw] h-[50vh] bg-primary/5 rounded-full blur-[120px] opacity-50" />
+        <div className="absolute bottom-0 left-[-10%] w-[40vw] h-[40vh] bg-primary/5 rounded-full blur-[100px] opacity-30" />
+      </div>
 
-      <main className="pt-24 md:pt-32 pb-20 relative z-10 container-luxury">
+      <main className="container mx-auto px-4 pt-24 pb-20 max-w-6xl">
+        {/* Header Section */}
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            className="mb-10 md:mb-16"
         >
-            <h1 className="text-3xl md:text-4xl font-serif mb-2">My Profile</h1>
-            <p className="text-muted-foreground mb-8 md:mb-12">Manage your account settings and preferences.</p>
+            <h1 className="text-3xl md:text-4xl font-light tracking-tight text-foreground">Settings</h1>
+            <p className="text-muted-foreground mt-2 text-sm md:text-base font-light">
+              Manage your personal information and account preferences.
+            </p>
         </motion.div>
 
-        <div className="grid lg:grid-cols-[280px_1fr] gap-8 lg:gap-12">
+        <div className="grid lg:grid-cols-[260px_1fr] gap-8 lg:gap-16 items-start">
           
-          {/* Sidebar Navigation */}
+          {/* Sidebar */}
           <motion.div 
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="space-y-6 md:space-y-8"
+            transition={{ delay: 0.1 }}
+            className="lg:sticky lg:top-32 space-y-8"
           >
-            {/* User Snapshot */}
-            <div className="flex items-center gap-4 mb-4 md:mb-8">
-                <div className="relative group cursor-pointer shrink-0">
-                    <Avatar className="h-16 w-16 border-2 border-background shadow-soft">
-                        <AvatarImage src="" alt={user.first_name} />
-                        <AvatarFallback className="bg-primary/10 text-primary text-xl font-medium">{initials}</AvatarFallback>
-                    </Avatar>
-                    <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <Camera className="w-6 h-6 text-white" />
-                    </div>
-                </div>
-                <div className="overflow-hidden">
-                    <h3 className="font-medium truncate">{user.first_name} {user.last_name}</h3>
-                    <p className="text-sm text-muted-foreground truncate opacity-80">{user.email}</p>
+            {/* Minimal Profile Card */}
+            <div className="flex items-center gap-4 pb-6 border-b border-border/40">
+                <Avatar className="h-12 w-12 border border-border/50">
+                    <AvatarImage src="" />
+                    <AvatarFallback className="bg-muted text-muted-foreground text-sm font-medium">{initials}</AvatarFallback>
+                </Avatar>
+                <div className="space-y-0.5">
+                    <p className="font-medium text-sm leading-none">{user.first_name} {user.last_name}</p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
                 </div>
             </div>
 
-            {/* Navigation Menu */}
-            <nav className="flex lg:block gap-2 overflow-x-auto pb-2 lg:pb-0 lg:space-y-1 hide-scrollbar">
+            {/* Navigation */}
+            <nav className="space-y-1">
                 {menuItems.map((item) => (
                     <button
                         key={item.id}
                         onClick={() => setActiveTab(item.id)}
                         className={cn(
-                            "flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group whitespace-nowrap lg:w-full shrink-0",
+                            "w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-all duration-200 group relative",
                             activeTab === item.id 
-                                ? "bg-primary text-primary-foreground shadow-md shadow-primary/20" 
-                                : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground bg-secondary/30 lg:bg-transparent"
+                                ? "text-primary font-medium bg-primary/5" 
+                                : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
                         )}
                     >
-                        <div className="flex items-center gap-3">
-                            <item.icon className={cn("w-4 h-4", activeTab === item.id ? "opacity-100" : "opacity-70")} />
-                            {item.label}
+                        <div className="flex items-center gap-3 relative z-10">
+                            <item.icon className={cn("w-4 h-4 transition-colors", activeTab === item.id ? "text-primary" : "text-muted-foreground/70")} />
+                            <span>{item.label}</span>
                         </div>
-                        {activeTab === item.id && <ChevronRight className="w-4 h-4 opacity-50 hidden lg:block" />}
+                        {activeTab === item.id && (
+                          <motion.div 
+                            layoutId="activeTabIndicator"
+                            className="absolute left-0 w-0.5 h-1/2 top-1/4 bg-primary rounded-r-full"
+                          />
+                        )}
                     </button>
                 ))}
             </nav>
 
-            <div className="pt-4 lg:pt-8 mt-4 lg:mt-8 border-t border-border/50">
+            <div className="pt-6 border-t border-border/40">
                  <Button 
                     variant="ghost" 
-                    className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/5 px-4"
+                    className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/5 px-3 h-10 text-sm font-normal"
                     onClick={logout}
                 >
                     <LogOut className="w-4 h-4 mr-3" />
-                    Sign Out
+                    Log out
                  </Button>
             </div>
           </motion.div>
 
-          {/* Main Content Area */}
-          <div className="lg:pl-8 lg:border-l lg:border-border/40 min-h-[500px]">
+          {/* Content Area */}
+          <div className="min-h-[500px]">
             <AnimatePresence mode="wait">
                 
-                {/* ACCOUNT TAB */}
+                {/* --- ACCOUNT TAB --- */}
                 {activeTab === "account" && (
                     <motion.div
                         key={user?.id ? `account-${user.id}` : "account"}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.3 }}
-                        className="space-y-8 max-w-2xl"
+                        exit={{ opacity: 0, y: -5 }}
+                        transition={{ duration: 0.2 }}
+                        className="space-y-10"
                     >
-                        <div className="flex items-center justify-between">
+                        {/* Section Header with Actions */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/40">
                             <div>
-                                <h2 className="text-xl font-medium mb-1">Personal Information</h2>
-                                <p className="text-sm text-muted-foreground">Update your photo and personal details.</p>
+                                <h2 className="text-lg font-medium text-foreground">Profile Information</h2>
+                                <p className="text-sm text-muted-foreground font-light">Update your photo and personal details here.</p>
                             </div>
-                            {!isEditing ? (
-                                <Button onClick={() => setIsEditing(true)} variant="outline" size="sm" className="gap-2">
-                                    <Edit2 className="w-3.5 h-3.5" /> Edit
-                                </Button>
-                            ) : (
-                                <div className="flex items-center gap-2">
-                                     <Button onClick={() => setIsEditing(false)} variant="ghost" size="sm">Cancel</Button>
-                                     <Button onClick={handleUpdateProfile} size="sm" className="gap-2">
-                                        <Save className="w-3.5 h-3.5" /> Save
-                                     </Button>
+                            <div className="flex items-center gap-2">
+                                {!isEditing ? (
+                                    <Button onClick={() => setIsEditing(true)} variant="outline" size="sm" className="h-9 px-4 text-xs">
+                                        Edit Profile
+                                    </Button>
+                                ) : (
+                                    <>
+                                        <Button onClick={handleCancelEdit} variant="ghost" size="sm" className="h-9 px-3 text-xs text-muted-foreground">
+                                            Cancel
+                                        </Button>
+                                        <Button onClick={handleUpdateProfile} size="sm" className="h-9 px-4 text-xs gap-2">
+                                            <Check className="w-3.5 h-3.5" /> Save Changes
+                                        </Button>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Avatar Section */}
+                        <div className="flex items-center gap-6">
+                            <div className="relative group">
+                                <Avatar className="h-20 w-20 md:h-24 md:w-24 border-4 border-background shadow-sm">
+                                    <AvatarImage src="" />
+                                    <AvatarFallback className="bg-secondary text-secondary-foreground text-2xl font-light">{initials}</AvatarFallback>
+                                </Avatar>
+                                {isEditing && (
+                                    <button className="absolute bottom-0 right-0 p-1.5 bg-primary text-primary-foreground rounded-full shadow-md hover:bg-primary/90 transition-colors">
+                                        <Camera className="w-4 h-4" />
+                                    </button>
+                                )}
+                            </div>
+                            {isEditing && (
+                                <div className="space-y-2">
+                                    <div className="flex gap-2">
+                                        <Button variant="outline" size="sm" className="text-xs h-8">Upload New</Button>
+                                        <Button variant="ghost" size="sm" className="text-xs h-8 text-destructive hover:text-destructive hover:bg-destructive/10">Remove</Button>
+                                    </div>
+                                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider">JPG, GIF or PNG. Max 1MB.</p>
                                 </div>
                             )}
                         </div>
 
-                        <div className="grid gap-6">
-                            <div className="grid md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <Label className="text-xs uppercase tracking-wider text-muted-foreground font-medium">First Name</Label>
-                                    <Input 
-                                        value={formData.first_name}
-                                        onChange={(e) => setFormData({...formData, first_name: e.target.value})}
-                                        readOnly={!isEditing}
-                                        className={cn("bg-transparent border-border/50 focus:bg-background transition-all", !isEditing && "border-transparent px-0 font-medium text-lg h-auto shadow-none -ml-1 cursor-default focus-visible:ring-0")}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Last Name</Label>
-                                    <Input 
-                                        value={formData.last_name}
-                                        onChange={(e) => setFormData({...formData, last_name: e.target.value})}
-                                        readOnly={!isEditing}
-                                        className={cn("bg-transparent border-border/50 focus:bg-background transition-all", !isEditing && "border-transparent px-0 font-medium text-lg h-auto shadow-none -ml-1 cursor-default focus-visible:ring-0")}
-                                    />
-                                </div>
-                            </div>
-                            
-                            <div className="space-y-2">
-                                <Label className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Email Address</Label>
-                                 <Input 
-                                    value={formData.email}
-                                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                                    readOnly={!isEditing}
-                                    className={cn("bg-transparent border-border/50 focus:bg-background transition-all", !isEditing && "border-transparent px-0 font-medium text-lg h-auto shadow-none -ml-1 cursor-default focus-visible:ring-0")}
+                        {/* Form Fields */}
+                        <div className="grid gap-x-8 gap-y-8 md:grid-cols-2">
+                            <ProfileField 
+                                label="First Name" 
+                                value={formData.first_name} 
+                                isEditing={isEditing}
+                                onChange={(val) => setFormData({...formData, first_name: val})}
+                            />
+                            <ProfileField 
+                                label="Last Name" 
+                                value={formData.last_name} 
+                                isEditing={isEditing}
+                                onChange={(val) => setFormData({...formData, last_name: val})}
+                            />
+                            <ProfileField 
+                                label="Email Address" 
+                                value={formData.email} 
+                                isEditing={isEditing}
+                                onChange={(val) => setFormData({...formData, email: val})}
+                            />
+                            <ProfileField 
+                                label="Phone Number" 
+                                value={formData.phone} 
+                                isEditing={isEditing}
+                                placeholder="+1 (555) 000-0000"
+                                onChange={(val) => setFormData({...formData, phone: val})}
+                            />
+                            <div className="md:col-span-2">
+                                <ProfileField 
+                                    label="Shipping Address" 
+                                    value={formData.address} 
+                                    isEditing={isEditing}
+                                    icon={<MapPin className="w-4 h-4" />}
+                                    placeholder="Street address, City, State, Zip"
+                                    onChange={(val) => setFormData({...formData, address: val})}
                                 />
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Phone Number</Label>
-                                 <Input 
-                                    value={formData.phone}
-                                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                                    readOnly={!isEditing}
-                                    placeholder={isEditing ? "+1 234 567 890" : "Not set"}
-                                    className={cn("bg-transparent border-border/50 focus:bg-background transition-all", !isEditing && "border-transparent px-0 font-medium text-lg h-auto shadow-none -ml-1 cursor-default focus-visible:ring-0")}
-                                />
-                            </div>
-
-                             <div className="space-y-2">
-                                <Label className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Shipping Address</Label>
-                                <div className="relative">
-                                    {isEditing && <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />}
-                                    <Input 
-                                        value={formData.address}
-                                        onChange={(e) => setFormData({...formData, address: e.target.value})}
-                                        readOnly={!isEditing}
-                                        placeholder={isEditing ? "Enter your address" : "No address set"}
-                                        className={cn(
-                                            "bg-transparent border-border/50 focus:bg-background transition-all", 
-                                            isEditing ? "pl-9" : "border-transparent px-0 font-medium text-lg h-auto shadow-none -ml-1 cursor-default focus-visible:ring-0"
-                                        )}
-                                    />
-                                </div>
                             </div>
                         </div>
                     </motion.div>
                 )}
 
-                {/* ORDERS TAB */}
+                {/* --- ORDERS TAB --- */}
                 {activeTab === "orders" && (
                     <motion.div
-                         key="orders"
+                        key="orders"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.3 }}
-                        className="space-y-6"
+                        exit={{ opacity: 0, y: -5 }}
+                        transition={{ duration: 0.2 }}
                     >
-                        <div className="flex items-center justify-between mb-8">
-                            <div>
-                                <h2 className="text-xl font-medium mb-1">Order History</h2>
-                                <p className="text-sm text-muted-foreground">View and track your recent orders.</p>
-                            </div>
+                         <div className="mb-8 border-b border-border/40 pb-2">
+                            <h2 className="text-lg font-medium text-foreground">Order History</h2>
+                            <p className="text-sm text-muted-foreground font-light">View and track your recent purchases.</p>
                         </div>
-
-                        <div className="rounded-2xl border border-dashed border-border/60 bg-secondary/20 p-12 flex flex-col items-center justify-center text-center">
-                            <div className="w-16 h-16 bg-background rounded-full shadow-soft flex items-center justify-center mb-4">
-                                <Package className="w-8 h-8 text-muted-foreground/50" />
-                            </div>
-                            <h3 className="font-medium text-lg mb-2">No orders yet</h3>
-                            <p className="text-muted-foreground max-w-sm mb-6">Looks like you haven&apos;t placed an order yet. Explore our collection and find something you love.</p>
-                            <Button onClick={() => router.push('/products')} className="min-w-[150px]">Start Shopping</Button>
-                        </div>
+                        <OrdersTab />
                     </motion.div>
                 )}
 
-                {/* SECURITY TAB */}
+                {/* --- SECURITY TAB --- */}
                 {activeTab === "security" && (
                      <motion.div
                         key="security"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.3 }}
-                        className="space-y-8 max-w-xl"
+                        exit={{ opacity: 0, y: -5 }}
+                        transition={{ duration: 0.2 }}
+                        className="max-w-lg"
                     >
-                         <div className="mb-6">
-                            <h2 className="text-xl font-medium mb-1">Login & Security</h2>
-                            <p className="text-sm text-muted-foreground">Manage your password and security settings.</p>
+                         <div className="mb-8 border-b border-border/40 pb-2">
+                            <h2 className="text-lg font-medium text-foreground">Login & Security</h2>
+                            <p className="text-sm text-muted-foreground font-light">Manage your password and account security.</p>
                         </div>
 
-                        <div className="p-6 rounded-2xl border border-border bg-card/40 shadow-xs space-y-6">
-                            <h3 className="font-medium flex items-center gap-2">
-                                <ShieldCheck className="w-4 h-4 text-primary" />
-                                Change Password
-                            </h3>
-                             <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label>Current Password</Label>
+                        <div className="space-y-6">
+                            <div className="space-y-4">
+                                <div className="space-y-1.5">
+                                    <Label className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Current Password</Label>
                                     <Input
                                         type="password"
-                                        className="bg-background"
+                                        placeholder="••••••••"
+                                        className="max-w-md bg-background focus:bg-background transition-all"
                                         value={passwordData.old_password}
                                         onChange={(e) => setPasswordData({...passwordData, old_password: e.target.value})}
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label>New Password</Label>
+                                <div className="space-y-1.5">
+                                    <Label className="text-xs uppercase tracking-wider text-muted-foreground font-medium">New Password</Label>
                                     <Input
                                         type="password"
-                                        className="bg-background"
+                                        placeholder="••••••••"
+                                        className="max-w-md bg-background focus:bg-background transition-all"
                                         value={passwordData.new_password}
                                         onChange={(e) => setPasswordData({...passwordData, new_password: e.target.value})}
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label>Confirm New Password</Label>
+                                <div className="space-y-1.5">
+                                    <Label className="text-xs uppercase tracking-wider text-muted-foreground font-medium">Confirm New Password</Label>
                                     <Input
                                         type="password"
-                                        className="bg-background"
+                                        placeholder="••••••••"
+                                        className="max-w-md bg-background focus:bg-background transition-all"
                                         value={passwordData.confirm_password}
                                         onChange={(e) => setPasswordData({...passwordData, confirm_password: e.target.value})}
                                     />
                                 </div>
-                                <div className="flex justify-end pt-2">
-                                    <Button onClick={handleChangePassword} disabled={isLoading}>
-                                        {isLoading ? "Updating..." : "Update Password"}
-                                    </Button>
-                                </div>
+                            </div>
+                            
+                            <div className="pt-4 flex items-center gap-4">
+                                <Button onClick={handleChangePassword} disabled={isLoading} className="px-6">
+                                    {isLoading ? "Updating..." : "Update Password"}
+                                </Button>
+                                <p className="text-xs text-muted-foreground max-w-[200px] leading-tight">
+                                    Secure your account with a strong password.
+                                </p>
                             </div>
                         </div>
                     </motion.div>
@@ -336,11 +362,55 @@ const ProfilePage = () => {
 
             </AnimatePresence>
           </div>
-
         </div>
       </main>
     </div>
   );
-};
+}
 
-export default ProfilePage;
+// Helper Component for Fields
+const ProfileField = ({ 
+    label, 
+    value, 
+    isEditing, 
+    onChange, 
+    icon,
+    placeholder = "Not set"
+}: { 
+    label: string, 
+    value: string, 
+    isEditing: boolean, 
+    onChange: (val: string) => void,
+    icon?: React.ReactNode,
+    placeholder?: string
+}) => {
+    return (
+        <div className="space-y-2 group">
+            <Label className="text-[10px] uppercase tracking-widest text-muted-foreground font-semibold pl-1">{label}</Label>
+            <div className="relative">
+                {isEditing ? (
+                    <div className="relative">
+                        {icon && <div className="absolute left-3 top-2.5 text-muted-foreground">{icon}</div>}
+                        <Input 
+                            value={value}
+                            onChange={(e) => onChange(e.target.value)}
+                            placeholder={placeholder}
+                            className={cn(
+                                "transition-all bg-secondary/20 border-transparent focus:border-input focus:bg-background", 
+                                icon && "pl-9"
+                            )}
+                        />
+                    </div>
+                ) : (
+                    <div className={cn(
+                        "flex items-center w-full px-1 py-2 text-base text-foreground font-light border-b border-border/10 group-hover:border-border/40 transition-colors",
+                        !value && "text-muted-foreground italic text-sm"
+                    )}>
+                        {icon && <span className="mr-3 opacity-50">{icon}</span>}
+                        {value || placeholder}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};

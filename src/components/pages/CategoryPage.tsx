@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { useProductsWithParams, useCategories } from "@/hooks/use-product";
 import { Checkbox } from "@/components/ui/checkbox";
 
-const skinTypes = ["All Skin Types", "Oily", "Dry", "Combination", "Sensitive", "Normal"];
 const priceRanges = ["Under $15", "$15 - $30", "$30 - $50", "Over $50"];
 
 interface CategoryPageProps {
@@ -23,10 +22,10 @@ const CategoryPage = ({ type = "category" }: CategoryPageProps) => {
   const [sortBy, setSortBy] = useState("popular");
   const [gridCols, setGridCols] = useState<3 | 4>(4);
   const [selectedFilters, setSelectedFilters] = useState<{
-    skinTypes: string[];
+    categories: string[];
     priceRanges: string[];
   }>({
-    skinTypes: [],
+    categories: [],
     priceRanges: [],
   });
 
@@ -35,19 +34,47 @@ const CategoryPage = ({ type = "category" }: CategoryPageProps) => {
   const categories = categoriesData?.results || [];
   const category = type === "category" ? categories.find((c) => c.slug === slug) : null;
 
+  // Price range mapping
+  const priceRangeMap: Record<string, { min: number; max: number | undefined }> = {
+    "Under $15": { min: 0, max: 15 },
+    "$15 - $30": { min: 15, max: 30 },
+    "$30 - $50": { min: 30, max: 50 },
+    "Over $50": { min: 50, max: undefined },
+  };
+
+  // Calculate min and max price from selected ranges
+  let minPrice: number | undefined;
+  let maxPrice: number | undefined;
+
+  if (selectedFilters.priceRanges.length > 0) {
+    const selectedRanges = selectedFilters.priceRanges.map(range => priceRangeMap[range]);
+    const mins = selectedRanges.map(r => r.min);
+    const maxs = selectedRanges.map(r => r.max);
+
+    minPrice = Math.min(...mins);
+    // If any selected range has undefined max (e.g. "Over $50"), maxPrice should be undefined (no upper limit)
+    const hasOpenUpper = maxs.includes(undefined);
+    if (!hasOpenUpper) {
+        maxPrice = Math.max(...(maxs as number[]));
+    }
+  }
+
   // Determine query params based on type
   const queryParams = {
     page_size: 50,
-    ...(type === "category" ? { category: slug } : {}),
+    ...(type === "category" ? { category: Array.from(new Set([slug, ...selectedFilters.categories].filter(Boolean))) } : 
+       (selectedFilters.categories.length > 0 ? { category: selectedFilters.categories } : {})),
     ...(type === "featured" ? { is_featured: true } : {}),
     ...(type === "popular" ? { is_popular: true } : {}),
+    ...(minPrice !== undefined ? { min_price: minPrice } : {}),
+    ...(maxPrice !== undefined ? { max_price: maxPrice } : {}),
   };
 
   // Fetch products
   const { data: productsData, isLoading } = useProductsWithParams(queryParams);
   const filteredProducts = productsData?.results || [];
 
-  const toggleFilter = (filterType: "skinTypes" | "priceRanges", value: string) => {
+  const toggleFilter = (filterType: "categories" | "priceRanges", value: string) => {
     setSelectedFilters((prev) => ({
       ...prev,
       [filterType]: prev[filterType].includes(value)
@@ -57,11 +84,11 @@ const CategoryPage = ({ type = "category" }: CategoryPageProps) => {
   };
 
   const clearFilters = () => {
-    setSelectedFilters({ skinTypes: [], priceRanges: [] });
+    setSelectedFilters({ categories: [], priceRanges: [] });
   };
 
   const activeFilterCount =
-    selectedFilters.skinTypes.length +
+    selectedFilters.categories.length +
     selectedFilters.priceRanges.length;
 
   // Determine Page Title
@@ -105,23 +132,26 @@ const CategoryPage = ({ type = "category" }: CategoryPageProps) => {
                   )}
                 </div>
 
-                {/* Skin Type Filter */}
+                {/* Categories Filter */}
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium text-muted-foreground">
-                    Skin Type
+                    Categories
                   </h4>
                   <div className="space-y-2">
-                    {skinTypes.map((type) => (
+                    {categories.map((cat) => (
                       <label
-                        key={type}
+                        key={cat.id}
                         className="flex items-center gap-3 cursor-pointer group"
                       >
                         <Checkbox
-                          checked={selectedFilters.skinTypes.includes(type)}
-                          onCheckedChange={() => toggleFilter("skinTypes", type)}
+                          checked={selectedFilters.categories.includes(cat.slug) || (type === "category" && cat.slug === slug)}
+                          onCheckedChange={() => toggleFilter("categories", cat.slug)}
+                          disabled={type === "category" && cat.slug === slug} // Disable current category if in valid view
                         />
-                        <span className="text-sm group-hover:text-foreground transition-colors">
-                          {type}
+                        <span className={`text-sm transition-colors ${
+                             (type === "category" && cat.slug === slug) ? "text-foreground font-medium" : "group-hover:text-foreground"
+                          }`}>
+                          {cat.name}
                         </span>
                       </label>
                     ))}
@@ -147,28 +177,6 @@ const CategoryPage = ({ type = "category" }: CategoryPageProps) => {
                           {range}
                         </span>
                       </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Categories Filter - Only show if in category mode or maybe show to allow navigation away */}
-                <div className="space-y-3">
-                  <h4 className="text-sm font-medium text-muted-foreground">
-                    Categories
-                  </h4>
-                  <div className="space-y-2">
-                    {categories.map((cat) => (
-                      <a
-                        key={cat.id}
-                        href={`/category/${cat.slug}`}
-                        className={`block text-sm transition-colors ${
-                          type === "category" && cat.slug === slug
-                            ? "text-foreground font-medium"
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        {cat.name}
-                      </a>
                     ))}
                   </div>
                 </div>
@@ -248,17 +256,18 @@ const CategoryPage = ({ type = "category" }: CategoryPageProps) => {
                   {/* Mobile filter content - simplified */}
                   <div className="space-y-4">
                     <div className="flex flex-wrap gap-2">
-                      {skinTypes.map((type) => (
+                      {categories.map((cat) => (
                         <button
-                          key={type}
-                          onClick={() => toggleFilter("skinTypes", type)}
+                          key={cat.id}
+                          onClick={() => toggleFilter("categories", cat.slug)}
                           className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
-                            selectedFilters.skinTypes.includes(type)
+                            selectedFilters.categories.includes(cat.slug) || (type === "category" && cat.slug === slug)
                               ? "bg-primary text-primary-foreground"
                               : "bg-secondary hover:bg-accent"
                           }`}
+                          disabled={type === "category" && cat.slug === slug}
                         >
-                          {type}
+                          {cat.name}
                         </button>
                       ))}
                     </div>

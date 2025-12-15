@@ -10,10 +10,10 @@ import {
 
 // Filtering (optional)
 export interface ProductFilterParams extends PaginationParams {
-  category?: string;
-  sub_category?: string;
-  category_id?: number;
-  sub_category_id?: number;
+  category?: string | string[];
+  sub_category?: string | string[];
+  category_id?: number | number[];
+  sub_category_id?: number | number[];
   is_featured?: boolean;
   is_popular?: boolean;
   min_price?: number;
@@ -62,11 +62,40 @@ export const productApi = {
       query.append("sort_by", sortBy);
       query.append("sort_order", sortOrder);
     }
-    if (category) query.append("category", category);
-    if (sub_category) query.append("sub_category", sub_category);
-    if (category_id) query.append("category_id", String(category_id));
-    if (sub_category_id)
-      query.append("sub_category_id", String(sub_category_id));
+    
+    // Handle potential arrays for filters
+    if (category) {
+        if (Array.isArray(category)) {
+            category.forEach(c => query.append("category", c));
+        } else {
+            query.append("category", category);
+        }
+    }
+    
+    if (sub_category) {
+        if (Array.isArray(sub_category)) {
+            sub_category.forEach(sc => query.append("sub_category", sc));
+        } else {
+             query.append("sub_category", sub_category);
+        }
+    }
+    
+    if (category_id) {
+        if (Array.isArray(category_id)) {
+            category_id.forEach(id => query.append("category_id", String(id)));
+        } else {
+             query.append("category_id", String(category_id));
+        }
+    }
+
+    if (sub_category_id) {
+        if (Array.isArray(sub_category_id)) {
+            sub_category_id.forEach(id => query.append("sub_category_id", String(id)));
+        } else {
+            query.append("sub_category_id", String(sub_category_id));
+        }
+    }
+
     if (is_featured !== undefined)
       query.append("is_featured", String(is_featured));
     if (is_popular !== undefined)

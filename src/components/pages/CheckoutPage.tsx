@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
@@ -15,13 +15,18 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/hooks/use-auth";
+import { useCreateOrder } from "@/hooks/my-order";
+import { CreateOrderPayload } from "@/types/my-orders";
 import { toast } from "sonner";
 import Image from "next/image";
 
 const CheckoutPage = () => {
   const { cartItems, totalPrice, clearCart } = useCart();
+  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const [step, setStep] = useState(1);
+  const { mutateAsync: createOrderMutation, isPending: isCreatingOrder } = useCreateOrder();
   const [formData, setFormData] = useState({
     email: "",
     firstName: "",
@@ -33,20 +38,63 @@ const CheckoutPage = () => {
     shippingMethod: "standard",
   });
 
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      toast.error("Please log in to checkout");
+      sessionStorage.setItem("redirectAfterLogin", "/checkout");
+      router.push("/auth");
+    }
+  }, [isLoading, isAuthenticated, router]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background pt-28 pb-16 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <p className="text-muted-foreground font-medium animate-pulse">Loading checkout...</p>
+        </div>
+      </div>
+    );
+  }
+
   const subtotal = totalPrice;
   const shipping = formData.shippingMethod === "express" ? 9.99 : subtotal >= 50 ? 0 : 5.99;
   const total = subtotal + shipping;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (step < 3) {
       setStep(step + 1);
     } else {
-      toast.success("Order placed successfully!", {
-        description: "Check your email for confirmation.",
-      });
-      clearCart();
-      router.push("/");
+      try {
+        const payload: CreateOrderPayload = {
+            customer_email: formData.email,
+            customer_name: `${formData.firstName} ${formData.lastName}`,
+            customer_phone: formData.phone,
+            customer_address: formData.address,
+            shipping_address: formData.address,
+            city: formData.city,
+            zip_code: formData.zipCode,
+            shipping_method: formData.shippingMethod,
+            total_amount: total,
+            items: cartItems.map(item => ({
+                product_id: item.product.id,
+                quantity: item.quantity,
+                price: parseFloat(item.product.price)
+            }))
+        };
+
+        await createOrderMutation(payload);
+
+        toast.success("Order placed successfully!", {
+            description: "Check your email for confirmation.",
+        });
+        clearCart();
+        router.push("/");
+      } catch (error) {
+        toast.error("Failed to place order. Please try again.");
+        console.error("Order creation failed:", error);
+      }
     }
   };
 
@@ -299,9 +347,9 @@ const CheckoutPage = () => {
                     </Link>
                   )}
 
-                  <Button type="submit" className="gap-2">
-                    {step === 3 ? "Place Order" : "Continue"}
-                    <ChevronRight className="w-4 h-4" />
+                  <Button type="submit" className="gap-2" disabled={isCreatingOrder}>
+                    {step === 3 ? (isCreatingOrder ? "Processing..." : "Place Order") : "Continue"}
+                    {!isCreatingOrder && <ChevronRight className="w-4 h-4" />}
                   </Button>
                 </div>
               </form>
