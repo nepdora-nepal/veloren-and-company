@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useState, useMemo } from "react";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -15,6 +15,7 @@ import {
   Shield,
   ChevronRight,
   Loader2,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,15 +30,20 @@ import { ProductCard } from "@/components/products/ProductCard";
 import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "@/hooks/use-wishlist";
 import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/contexts/CartContext";
-import { useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useReviews, useCreateReview } from "@/hooks/use-review";
+import { format } from "date-fns";
 
 const ProductPage = () => {
   const params = useParams();
-  // The route is /product/[id], so the param is named 'id', but it might contain a slug.
   const slug = (params?.slug as string) || (params?.id as string);
 
   const { data: product, isLoading, error } = useProduct(slug);
+  const { data: reviewsData } = useReviews(slug);
+  console.log("ProductPage Render:", { slug, reviewsData });
+  const { mutate: createReview, isPending: isSubmittingReview } = useCreateReview();
+
+
+
   const { data: relatedData } = useProductsWithParams({
     category_id: product?.category?.id,
     page_size: 4,
@@ -45,12 +51,17 @@ const ProductPage = () => {
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const [visibleReviewsCount, setVisibleReviewsCount] = useState(4);
+  
   const router = useRouter();
 
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, tokens, logout } = useAuth();
   const { data: wishlist } = useWishlist();
   const { mutate: addToWishlist } = useAddToWishlist();
   const { mutate: removeFromWishlist } = useRemoveFromWishlist();
+  const { addToCart } = useCart();
 
   const wishlistItem = useMemo(() => 
     wishlist?.find((item) => item.product.id === product?.id), 
@@ -77,6 +88,52 @@ const ProductPage = () => {
     }
   };
 
+  const handleAddToCart = () => {
+    if (!product) return;
+    addToCart(product, quantity);
+    toast.success("Added to bag", {
+      description: `${quantity}x ${product.name} added to your bag.`,
+    });
+  };
+
+  const handleSubmitReview = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!product || !tokens?.access) return;
+    
+    if (!comment.trim()) {
+      toast.error("Please write a comment");
+      return;
+    }
+
+    createReview(
+      { 
+        data: { 
+          product_id: product.id, 
+          rating, 
+          comment 
+        }, 
+        token: tokens.access,
+        slug: slug
+      },
+      {
+        onSuccess: () => {
+          toast.success("Review submitted successfully");
+          setComment("");
+          setRating(5);
+        },
+        onError: (error) => {
+          const msg = error.message;
+          if (msg.includes("User not found") || msg.includes("401") || msg.includes("Session expired")) {
+             toast.error("Your session has expired. Please log in again.");
+             logout(); 
+             return;
+          }
+          toast.error(msg || "Failed to submit review");
+        }
+      }
+    );
+  };
+
   // Build images array from product data
   const images: string[] = product
     ? [
@@ -89,17 +146,6 @@ const ProductPage = () => {
   const relatedProducts =
     relatedData?.results?.filter((p) => p.id !== product?.id) || [];
 
-  const { addToCart } = useCart();
-
-  const handleAddToCart = () => {
-    if (!product) return;
-    addToCart(product, quantity);
-    toast.success("Added to bag", {
-      description: `${quantity}x ${product.name} added to your bag.`,
-    });
-  };
-
-  // Loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -108,7 +154,6 @@ const ProductPage = () => {
     );
   }
 
-  // Error state
   if (error || !product) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
@@ -217,25 +262,46 @@ const ProductPage = () => {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
               className="space-y-6"
             >
-              {/* Category & Badges */}
-              <div className="flex items-center flex-wrap gap-3">
-                {product.category && (
-                  <span className="text-sm text-muted-foreground">
-                    {product.category.name}
-                  </span>
-                )}
-                {product.is_popular && (
-                  <span className="px-3 py-1 bg-rose text-rose-foreground text-xs font-medium rounded-full">
-                    POPULAR
-                  </span>
-                )}
-                {product.is_featured && (
-                  <span className="px-3 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-full">
-                    FEATURED
-                  </span>
-                )}
+              {/* Category & Badges & Rating */}
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center flex-wrap gap-3">
+                  {product.category && (
+                    <span className="text-sm text-muted-foreground">
+                      {product.category.name}
+                    </span>
+                  )}
+                  {product.is_popular && (
+                    <span className="px-3 py-1 bg-rose text-rose-foreground text-xs font-medium rounded-full">
+                      POPULAR
+                    </span>
+                  )}
+                  {product.is_featured && (
+                    <span className="px-3 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-full">
+                      FEATURED
+                    </span>
+                  )}
+                </div>
+
+                {/* Rating Summary */}
+                {product.average_rating ? (
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center">
+                            {[...Array(5)].map((_, i) => (
+                                <Star 
+                                    key={i} 
+                                    className={`w-4 h-4 ${i < Math.round(product.average_rating!) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} 
+                                />
+                            ))}
+                        </div>
+                        <span className="text-sm font-medium">{product.average_rating}</span>
+                        {product.reviews_count ? (
+                            <span className="text-sm text-muted-foreground">({product.reviews_count} reviews)</span>
+                        ) : null}
+                    </div>
+                ) : null}
               </div>
 
               {/* Title */}
@@ -316,7 +382,7 @@ const ProductPage = () => {
                     variant="outline"
                     size="icon"
                     onClick={handleWishlistClick}
-                    className="h-12 w-12 sm:h-11 sm:w-11" // Adjusted size slightly to match LG button if needed, but keeping consistent
+                    className="h-12 w-12 sm:h-11 sm:w-11"
                   >
                     <Heart
                       className={`w-5 h-5 ${
@@ -362,6 +428,112 @@ const ProductPage = () => {
                     )}
                   </AccordionContent>
                 </AccordionItem>
+                
+                {/* Reviews Accordion Item */}
+                <AccordionItem value="reviews">
+                    <AccordionTrigger>Reviews ({reviewsData?.count ?? product.reviews_count ?? 0})</AccordionTrigger>
+                    <AccordionContent>
+                        <div className="space-y-8">
+                            {/* Write Review Section */}
+                            {isAuthenticated ? (
+                                <form onSubmit={handleSubmitReview} className="bg-secondary/30 p-6 rounded-2xl space-y-4">
+                                    <h3 className="font-semibold">Write a Review</h3>
+                                    
+                                    <div className="space-y-2">
+                                        <label className="text-sm text-muted-foreground">Rating</label>
+                                        <div className="flex gap-1">
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <button
+                                                    key={star}
+                                                    type="button"
+                                                    onClick={() => setRating(star)}
+                                                    className="focus:outline-none transition-transform active:scale-95"
+                                                >
+                                                    <Star 
+                                                        className={`w-6 h-6 ${star <= rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} 
+                                                    />
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-sm text-muted-foreground">Comment</label>
+                                        <textarea
+                                            value={comment}
+                                            onChange={(e) => setComment(e.target.value)}
+                                            placeholder="Share your thoughts about this product..."
+                                            className="w-full min-h-[100px] p-3 rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 resize-y"
+                                            required
+                                        />
+                                    </div>
+
+                                    <Button 
+                                        type="submit" 
+                                        disabled={isSubmittingReview || !comment.trim()}
+                                    >
+                                        {isSubmittingReview ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                                Submitting...
+                                            </>
+                                        ) : (
+                                            "Submit Review"
+                                        )}
+                                    </Button>
+                                </form>
+                            ) : (
+                                <div className="bg-secondary/30 p-6 rounded-2xl text-center space-y-2">
+                                    <p className="font-medium">Want to write a review?</p>
+                                    <p className="text-sm text-muted-foreground mb-4">You need to be logged in to leave a review.</p>
+                                    <Button variant="outline" asChild>
+                                        <Link href="/auth">Log in</Link>
+                                    </Button>
+                                </div>
+                            )}
+
+                            {/* Reviews List */}
+                            <div className="space-y-6">
+                                {reviewsData?.results && reviewsData.results.length > 0 ? (
+                                    <>
+                                        {reviewsData.results.slice(0, visibleReviewsCount).map((review) => (
+                                            <div key={review.id} className="border-b border-border pb-4 last:border-0 last:pb-0">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <span className="font-medium">{`${review.user.first_name} ${review.user.last_name}`}</span>
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {format(new Date(review.created_at), "MMM d, yyyy")}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center mb-2">
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <Star 
+                                                            key={i} 
+                                                            className={`w-3 h-3 ${i < review.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} 
+                                                        />
+                                                    ))}
+                                                </div>
+                                                <p className="text-sm text-muted-foreground">{review.comment}</p>
+                                            </div>
+                                        ))}
+
+                                        {reviewsData.results.length > visibleReviewsCount && (
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => setVisibleReviewsCount((prev) => prev + 4)}
+                                                className="w-full mt-4"
+                                            >
+                                                View More Reviews
+                                            </Button>
+                                        )}
+                                    </>
+                                ) : (
+                                    <p className="text-muted-foreground text-sm">No reviews yet.</p>
+                                )}
+                            </div>
+                        </div>
+                    </AccordionContent>
+                </AccordionItem>
+
                 {product.warranty && (
                   <AccordionItem value="warranty">
                     <AccordionTrigger>Warranty</AccordionTrigger>

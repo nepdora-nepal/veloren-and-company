@@ -18,7 +18,8 @@ export const PromoBanners = () => {
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="relative overflow-hidden rounded-3xl bg-linear-to-br from-peach to-rose p-8 md:p-12"
+            transition={{ delay: 0.2 }}
+            className="relative overflow-hidden rounded-3xl bg-linear-to-br from-peach to-rose p-6 md:p-12"
           >
             <div className="relative z-10 space-y-6">
               <div className="flex items-center gap-2">
@@ -64,7 +65,8 @@ export const PromoBanners = () => {
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="relative overflow-hidden rounded-3xl bg-linear-to-br from-beige to-accent p-8 md:p-12"
+            transition={{ delay: 0.4 }}
+            className="relative overflow-hidden rounded-3xl bg-linear-to-br from-beige to-accent p-6 md:p-12"
           >
             <div className="relative z-10 space-y-6">
               <div className="flex items-center gap-2">

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useProductsWithParams, useCategories } from "@/hooks/use-product";
 import { Checkbox } from "@/components/ui/checkbox";
 
-const priceRanges = ["Under $15", "$15 - $30", "$30 - $50", "Over $50"];
+const priceRanges = ["Under $1000", "$1000 - $2000", "$2000 - $5000", "Over $5000"];
 
 interface CategoryPageProps {
   type?: "category" | "featured" | "popular";
@@ -36,10 +36,10 @@ const CategoryPage = ({ type = "category" }: CategoryPageProps) => {
 
   // Price range mapping
   const priceRangeMap: Record<string, { min: number; max: number | undefined }> = {
-    "Under $15": { min: 0, max: 15 },
-    "$15 - $30": { min: 15, max: 30 },
-    "$30 - $50": { min: 30, max: 50 },
-    "Over $50": { min: 50, max: undefined },
+    "Under $1000": { min: 0, max: 1000 },
+    "$1000 - $2000": { min: 1000, max: 2000 },
+    "$2000 - $5000": { min: 2000, max: 5000 },
+    "Over $5000": { min: 5000, max: undefined },
   };
 
   // Calculate min and max price from selected ranges
@@ -60,8 +60,40 @@ const CategoryPage = ({ type = "category" }: CategoryPageProps) => {
   }
 
   // Determine query params based on type
+  
+  let sortField = "is_popular";
+  let sortOrder: "asc" | "desc" = "desc";
+
+  switch (sortBy) {
+    case "popular":
+      sortField = "is_popular";
+      sortOrder = "desc";
+      break;
+    case "newest":
+      sortField = "created_at";
+      sortOrder = "desc";
+      break;
+    case "price-low":
+      sortField = "price";
+      sortOrder = "asc";
+      break;
+    case "price-high":
+      sortField = "price";
+      sortOrder = "desc";
+      break;
+    case "rating":
+      sortField = "average_rating";
+      sortOrder = "desc";
+      break;
+      default:
+        sortField = "is_popular";
+        sortOrder = "desc";
+  }
+
   const queryParams = {
     page_size: 50,
+    sortBy: sortField,
+    sortOrder: sortOrder,
     ...(type === "category" ? { category: Array.from(new Set([slug, ...selectedFilters.categories].filter(Boolean))) } : 
        (selectedFilters.categories.length > 0 ? { category: selectedFilters.categories } : {})),
     ...(type === "featured" ? { is_featured: true } : {}),
@@ -78,8 +110,8 @@ const CategoryPage = ({ type = "category" }: CategoryPageProps) => {
     setSelectedFilters((prev) => ({
       ...prev,
       [filterType]: prev[filterType].includes(value)
-        ? prev[filterType].filter((v) => v !== value)
-        : [...prev[filterType], value],
+        ? []
+        : [value],
     }));
   };
 
@@ -106,6 +138,7 @@ const CategoryPage = ({ type = "category" }: CategoryPageProps) => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
             className="mb-8"
           >
             <h1 className="text-3xl md:text-4xl font-bold mb-2">

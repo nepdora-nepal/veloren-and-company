@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Heart, Plus } from "lucide-react";
+import { Heart, Plus, Star } from "lucide-react";
 import { Product } from "@/types/product";
 import Link from "next/link";
 import Image from "next/image";
@@ -143,9 +143,20 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
         </Link>
 
         <Link href={productUrl} className="block space-y-1">
-          <p className="text-xs text-muted-foreground uppercase tracking-wide">
-            {product.category?.name || "\u00A0"}
-          </p>
+          <div className="flex justify-between items-start">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">
+              {product.category?.name || "\u00A0"}
+            </p>
+            {product.average_rating ? (
+               <div className="flex items-center gap-1">
+                 <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                 <span className="text-xs font-medium">{product.average_rating}</span>
+                 {product.reviews_count ? (
+                   <span className="text-xs text-muted-foreground">({product.reviews_count})</span>
+                 ) : null}
+               </div>
+            ) : null}
+          </div>
           <h3 className="font-medium text-foreground leading-snug line-clamp-2 group-hover:text-muted-foreground transition-colors">
             {product.name}
           </h3>

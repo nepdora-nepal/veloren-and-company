@@ -23,6 +23,7 @@ export const RoutineBuilder = () => {
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
             className="space-y-8"
           >
             <div className="space-y-4">
@@ -66,6 +67,7 @@ export const RoutineBuilder = () => {
             initial={{ opacity: 0, x: 20 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
+            transition={{ delay: 0.4 }}
             className="relative"
           >
             <div className="space-y-4">

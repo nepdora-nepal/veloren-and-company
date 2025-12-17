@@ -40,6 +40,26 @@ export interface ExtendedProduct extends Product {
   [key: string]: unknown;
 }
 
+// Review Interface
+export interface Review {
+  id: number;
+  user: {
+    id: number;
+    first_name: string;
+    last_name: string;
+    email: string;
+  };
+  rating: number;
+  comment: string;
+  created_at: string;
+}
+
+export interface CreateReviewRequest {
+  product_id: number;
+  rating: number;
+  comment: string;
+}
+
 // Generic product-like object interface for normalization
 export interface ProductLike {
   id: number;
@@ -55,6 +75,8 @@ export interface ProductLike {
   status?: "active" | "draft" | "archived";
   meta_title?: string | null;
   meta_description?: string | null;
+  average_rating?: number;
+  reviews_count?: number;
   [key: string]: unknown;
 }
 
@@ -181,5 +203,7 @@ export const normalizeProductForCart = (product: ProductLike): Product => {
     variants_read: productData.variants_read || [],
     created_at: productData.created_at || new Date().toISOString(),
     updated_at: productData.updated_at || new Date().toISOString(),
+    average_rating: productData.average_rating,
+    reviews_count: productData.reviews_count,
   };
 };

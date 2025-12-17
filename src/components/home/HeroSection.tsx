@@ -8,27 +8,27 @@ import Link from "next/link";
 
 export const HeroSection = () => {
   return (
-    <section className="relative  min-h-[90vh] flex items-center overflow-hidden bg-linear-to-br from-rose via-accent to-beige">
+    <section className="relative py-20 lg:py-0 lg:min-h-[90vh] flex items-center overflow-hidden bg-linear-to-br from-rose via-accent to-beige">
       {/* Background Glow Effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-peach/60 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 left-1/4 w-[400px] h-[400px] bg-rose/40 rounded-full blur-3xl" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 right-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-peach/60 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/4 w-[250px] md:w-[400px] h-[250px] md:h-[400px] bg-rose/40 rounded-full blur-3xl" />
       </div>
 
       <div className="container-luxury relative z-10">
-        <div className="grid lg:grid-cols-2 gap-96 items-center">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 xl:gap-32 items-center">
           {/* Left Content */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="space-y-8"
+            className="space-y-8 text-center lg:text-left"
           >
             <div className="space-y-4">
               <motion.span
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
+                transition={{ delay: 0.4 }}
                 className="inline-block px-4 py-2 bg-card/80 backdrop-blur-sm rounded-full text-sm font-medium"
               >
                 ✨ New Collection 2024
@@ -36,8 +36,8 @@ export const HeroSection = () => {
               <motion.h1
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.6 }}
-                className="text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight"
+                transition={{ delay: 0.6, duration: 0.6 }}
+                className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight"
               >
                 Unlock Your
                 <br />
@@ -46,8 +46,8 @@ export const HeroSection = () => {
               <motion.p
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.6 }}
-                className="text-lg text-muted-foreground max-w-md"
+                transition={{ delay: 0.8, duration: 0.6 }}
+                className="text-lg text-muted-foreground max-w-md mx-auto lg:mx-0"
               >
                 Discover premium Korean skincare formulated with time-tested
                 ingredients for radiant, healthy skin.
@@ -57,8 +57,8 @@ export const HeroSection = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.6 }}
-              className="flex flex-wrap gap-4"
+              transition={{ delay: 1.0, duration: 0.6 }}
+              className="flex flex-wrap justify-center lg:justify-start gap-4"
             >
               <Link href="/products">
                 <Button variant="hero" size="xl" className="cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-elevated">
@@ -77,21 +77,21 @@ export const HeroSection = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.6 }}
-              className="flex items-center gap-8 pt-4"
+              transition={{ delay: 1.2, duration: 0.6 }}
+              className="flex flex-wrap justify-center lg:justify-start items-center gap-6 md:gap-8 pt-4"
             >
               <div className="text-center">
-                <p className="text-2xl font-bold">50K+</p>
+                <p className="text-xl md:text-2xl font-bold">50K+</p>
                 <p className="text-sm text-muted-foreground">Happy Customers</p>
               </div>
-              <div className="w-px h-10 bg-border" />
+              <div className="hidden md:block w-px h-10 bg-border" />
               <div className="text-center">
-                <p className="text-2xl font-bold">4.9★</p>
+                <p className="text-xl md:text-2xl font-bold">4.9★</p>
                 <p className="text-sm text-muted-foreground">Average Rating</p>
               </div>
-              <div className="w-px h-10 bg-border" />
+              <div className="hidden md:block w-px h-10 bg-border" />
               <div className="text-center">
-                <p className="text-2xl font-bold">100%</p>
+                <p className="text-xl md:text-2xl font-bold">100%</p>
                 <p className="text-sm text-muted-foreground">Authentic</p>
               </div>
             </motion.div>
@@ -101,7 +101,7 @@ export const HeroSection = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
             className="relative hidden lg:block"
           >
             <div className="relative aspect-square">

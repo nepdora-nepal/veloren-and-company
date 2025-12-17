@@ -23,6 +23,7 @@ export const BestSellers = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
+          transition={{ delay: 0.2 }}
           className="text-center space-y-4 mb-12"
         >
           <span className="inline-block px-4 py-2 bg-rose rounded-full text-sm font-medium">
@@ -40,7 +41,7 @@ export const BestSellers = () => {
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : bestSellers.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-12">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 mb-12">
             {bestSellers.map((product, index) => (
               <ProductCard key={product.id} product={product} index={index} />
             ))}
@@ -56,6 +57,7 @@ export const BestSellers = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
+          transition={{ delay: 0.2 }}
           className="text-center"
         >
           <Link href="/products?is_popular=true">

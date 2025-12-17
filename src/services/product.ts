@@ -59,8 +59,8 @@ export const productApi = {
 
     if (search) query.append("search", search);
     if (sortBy) {
-      query.append("sort_by", sortBy);
-      query.append("sort_order", sortOrder);
+      const prefix = sortOrder === "desc" ? "-" : "";
+      query.append("ordering", `${prefix}${sortBy}`);
     }
     
     // Handle potential arrays for filters
