@@ -17,6 +17,13 @@ export const useWishlist = () => {
     queryKey: ["wishlist"],
     queryFn: () => getWishlist(),
     enabled: isAuthenticated,
+    retry: (failureCount, error) => {
+      // Don't retry on auth errors
+      if (error.message.includes('session has expired') || error.message.includes('log in')) {
+        return false;
+      }
+      return failureCount < 2;
+    },
   });
 };
 
@@ -32,9 +39,14 @@ export const useAddToWishlist = () => {
         description: `${newItem.product.name} has been added to your wishlist.`,
       });
     },
-    onError: () => {
+    onError: (error: Error) => {
+      // Show specific error message if available
+      const message = error.message.includes('log in') 
+        ? error.message 
+        : "Could not add item to wishlist. Please try again.";
+      
       toast.error("Error", {
-        description: "Could not add item to wishlist. Please try again.",
+        description: message,
       });
     },
   });
@@ -53,9 +65,14 @@ export const useRemoveFromWishlist = () => {
         description: "The item has been removed from your wishlist.",
       });
     },
-    onError: () => {
+    onError: (error: Error) => {
+      // Show specific error message if available
+      const message = error.message.includes('log in') 
+        ? error.message 
+        : "Could not remove item from wishlist. Please try again.";
+      
       toast.error("Error", {
-        description: "Could not remove item from wishlist. Please try again.",
+        description: message,
       });
     },
   });

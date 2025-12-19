@@ -161,10 +161,10 @@ export const ProductCard = ({ product, index = 0 }: ProductCardProps) => {
             {product.name}
           </h3>
           <div className="flex items-center gap-2 pt-1">
-            <span className="font-semibold">${price.toFixed(2)}</span>
+            <span className="font-semibold">Rs.{price}</span>
             {marketPrice && marketPrice > price && (
               <span className="text-sm text-muted-foreground line-through">
-                ${marketPrice.toFixed(2)}
+                Rs.{marketPrice}
               </span>
             )}
           </div>

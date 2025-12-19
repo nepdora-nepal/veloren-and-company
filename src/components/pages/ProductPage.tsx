@@ -310,15 +310,15 @@ const ProductPage = () => {
               {/* Price */}
               <div className="flex items-baseline gap-3 flex-wrap">
                 <span className="text-3xl font-bold">
-                  ${price.toFixed(2)}
+                  Rs.{price}
                 </span>
                 {marketPrice && marketPrice > price && (
                   <>
                     <span className="text-xl text-muted-foreground line-through">
-                      ${marketPrice.toFixed(2)}
+                      Rs.{marketPrice}
                     </span>
                     <span className="px-2 py-1 bg-peach text-peach-foreground text-sm font-medium rounded-lg">
-                      Save ${discount.toFixed(2)}
+                      Save Rs.{discount}
                     </span>
                   </>
                 )}

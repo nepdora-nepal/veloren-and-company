@@ -5,17 +5,30 @@ import { getAccessToken } from "@/hooks/use-auth";
 export const getWishlist = async (): Promise<WishlistItem[]> => {
   try {
     const API_BASE_URL = siteConfig.backendUrl;
+    const token = getAccessToken();
+
+    if (!token) {
+      console.warn('No auth token available for wishlist');
+      return [];
+    }
 
     const response = await fetch(`${API_BASE_URL}/api/wishlist/`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${getAccessToken()}`,
+        Authorization: `Bearer ${token}`,
       },
     });
 
+    if (response.status === 401) {
+      console.error('Unauthorized access to wishlist - invalid or expired token');
+      // Clear invalid token
+      localStorage.removeItem('glow-authTokens');
+      return [];
+    }
+
     if (!response.ok) {
-      throw new Error("Failed to fetch wishlist");
+      throw new Error(`Failed to fetch wishlist: ${response.status}`);
     }
     return response.json();
   } catch (error) {
@@ -39,15 +52,31 @@ export const addToWishlist = async ({
     }
 
     const API_BASE_URL = siteConfig.backendUrl;
+    const token = getAccessToken();
+
+    if (!token) {
+      throw new Error("Please log in to add items to your wishlist");
+    }
 
     const response = await fetch(`${API_BASE_URL}/api/wishlist/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${getAccessToken()}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ product_id: productId }),
     });
+
+    if (response.status === 401) {
+      // Clear invalid token
+      localStorage.removeItem('glow-authTokens');
+      throw new Error("Your session has expired. Please log in again.");
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to add to wishlist");
+    }
 
     return response.json();
   } catch (error) {
@@ -66,6 +95,11 @@ export const removeFromWishlist = async ({
 }): Promise<void> => {
   try {
     const API_BASE_URL = siteConfig.backendUrl;
+    const token = getAccessToken();
+
+    if (!token) {
+      throw new Error("Please log in to manage your wishlist");
+    }
 
     const response = await fetch(
       `${API_BASE_URL}/api/wishlist/${wishlistItemId}/`,
@@ -73,15 +107,20 @@ export const removeFromWishlist = async ({
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${getAccessToken()}`,
+          Authorization: `Bearer ${token}`,
         },
       }
     );
 
+    if (response.status === 401) {
+      // Clear invalid token
+      localStorage.removeItem('glow-authTokens');
+      throw new Error("Your session has expired. Please log in again.");
+    }
 
     // Check for 204 No Content response
-    if (response.status !== 204) {
-      throw new Error("Unexpected response status when removing from wishlist");
+    if (response.status !== 204 && !response.ok) {
+      throw new Error("Failed to remove from wishlist");
     }
   } catch (error) {
     console.error("Error removing from wishlist:", error);

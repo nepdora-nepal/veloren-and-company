@@ -140,11 +140,11 @@ const CartPage = () => {
 
                       <div className="text-right">
                         <p className="font-bold">
-                          ${(parseFloat(item.product.price) * item.quantity).toFixed(2)}
+                          Rs.{(parseFloat(item.product.price) * item.quantity)}
                         </p>
                         {item.quantity > 1 && (
                           <p className="text-xs text-muted-foreground">
-                            ${parseFloat(item.product.price).toFixed(2)} each
+                            Rs.{parseFloat(item.product.price)} each
                           </p>
                         )}
                       </div>
@@ -199,28 +199,28 @@ const CartPage = () => {
                 <div className="space-y-3 pt-4 border-t border-border">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                    <span>Rs.{subtotal}</span>
                   </div>
                   {discount > 0 && (
                     <div className="flex justify-between text-sm text-green-600">
                       <span>Discount (10%)</span>
-                      <span>-${discount.toFixed(2)}</span>
+                      <span>Rs.{discount}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Shipping</span>
-                    <span>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span>
+                    <span>{shipping === 0 ? "Free" : `Rs.${shipping}`}</span>
                   </div>
                   {shipping > 0 && subtotal < 50 && (
                     <p className="text-xs text-muted-foreground">
-                      Add ${(50 - subtotal).toFixed(2)} more for free shipping
+                      Add Rs.{(50 - subtotal)} more for free shipping
                     </p>
                   )}
                 </div>
 
                 <div className="flex justify-between pt-4 border-t border-border">
                   <span className="font-bold text-lg">Total</span>
-                  <span className="font-bold text-lg">${total.toFixed(2)}</span>
+                  <span className="font-bold text-lg">Rs.{total}</span>
                 </div>
 
                 <div className="flex items-center gap-3 p-3 bg-secondary rounded-xl">

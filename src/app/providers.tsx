@@ -1,7 +1,7 @@
 "use client";
 
 import { CartProvider } from "@/contexts/CartContext";
-import { AuthProvider } from "@/hooks/use-auth";
+import { AuthProvider } from "@/contexts/auth-context";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode, useState } from "react";
 

@@ -87,7 +87,7 @@ export const CartSheet = () => {
 
                       {/* Price */}
                       <span className="font-semibold text-sm">
-                        ${(parseFloat(item.product.price) * item.quantity).toFixed(2)}
+                        Rs.{(parseFloat(item.product.price) * item.quantity)}
                       </span>
                     </div>
                   </div>
@@ -100,7 +100,7 @@ export const CartSheet = () => {
               {/* Subtotal */}
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span className="text-xl font-bold">${totalPrice.toFixed(2)}</span>
+                <span className="text-xl font-bold">Rs.{totalPrice}</span>
               </div>
 
               <p className="text-xs text-muted-foreground text-center">

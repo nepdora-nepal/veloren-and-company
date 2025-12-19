@@ -245,7 +245,7 @@ const CheckoutPage = () => {
                     <div className="space-y-3">
                       {[
                         { id: "standard", label: "Standard Shipping", price: subtotal >= 50 ? "Free" : "$5.99", time: "5-7 business days" },
-                        { id: "express", label: "Express Shipping", price: "$9.99", time: "2-3 business days" },
+                        { id: "express", label: "Express Shipping", price: "Rs.200", time: "2-3 business days" },
                       ].map((option) => (
                         <label
                           key={option.id}
@@ -376,7 +376,7 @@ const CheckoutPage = () => {
                         <p className="text-sm font-medium line-clamp-2">{product.name}</p>
 
                       </div>
-                      <p className="font-medium">${(parseFloat(product.price) * quantity).toFixed(2)}</p>
+                      <p className="font-medium">Rs.{(parseFloat(product.price) * quantity)}</p>
                     </div>
                   ))}
                 </div>
@@ -384,15 +384,15 @@ const CheckoutPage = () => {
                 <div className="border-t border-border pt-4 space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                    <span>Rs.{subtotal}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Shipping</span>
-                    <span>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span>
+                    <span>{shipping === 0 ? "Free" : `Rs.${shipping}`}</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg pt-3 border-t border-border">
                     <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>Rs.{total}</span>
                   </div>
                 </div>
               </div>

@@ -190,7 +190,7 @@ export const Navbar = () => {
                           exit={{ opacity: 0, y: 8 }}
                           className="absolute top-full left-0 mt-2 w-48 bg-card rounded-xl shadow-elevated border border-border overflow-hidden z-50"
                         >
-                          <Link href="/category">
+                          <Link href="/products">
                           <button
                             onClick={() => {
                               setSelectedCategory("All");

@@ -35,7 +35,14 @@ export async function signupUser(data: SignupData): Promise<SignupResponse> {
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || "Signup failed");
+    // Handle nested error structure
+    const errorMessage = errorData.error?.message || errorData.message || errorData.error || "Signup failed";
+    const error = new Error(errorMessage) as Error & { response?: { status: number; data: typeof errorData } };
+    error.response = {
+      status: response.status,
+      data: errorData
+    };
+    throw error;
   }
   return response.json();
 }
@@ -53,7 +60,14 @@ export async function loginUser(data: LoginData): Promise<LoginResponse> {
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.error || errorData.message || "Login failed");
+    // Handle nested error structure
+    const errorMessage = errorData.error?.message || errorData.message || errorData.error || "Login failed";
+    const error = new Error(errorMessage) as Error & { response?: { status: number; data: typeof errorData } };
+    error.response = {
+      status: response.status,
+      data: errorData
+    };
+    throw error;
   }
   return response.json();
 }
@@ -156,6 +170,38 @@ export async function confirmPasswordReset(data: PasswordResetConfirmData): Prom
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.message || "Failed to reset password");
+  }
+  return response.json();
+}
+
+export async function refreshAccessToken(refresh: string): Promise<{ access: string }> {
+  const API_BASE_URL = siteConfig.backendUrl;
+
+  const response = await fetch(`${API_BASE_URL}/api/customer/token/refresh/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ refresh }),
+  });
+
+  if (!response.ok) {
+    // If not found, try the standard simplejwt endpoint as a fallback
+    if (response.status === 404) {
+       const fallbackResponse = await fetch(`${API_BASE_URL}/api/token/refresh/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ refresh }),
+      });
+      
+      if (!fallbackResponse.ok) {
+         throw new Error("Failed to refresh token");
+      }
+      return fallbackResponse.json();
+    }
+    throw new Error("Failed to refresh token");
   }
   return response.json();
 }
