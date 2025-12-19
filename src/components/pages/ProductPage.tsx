@@ -25,7 +25,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { toast } from "sonner";
-import { useProduct, useProductsWithParams } from "@/hooks/use-product";
+import { useProduct, useProductsWithParams, useCategories } from "@/hooks/use-product";
 import { ProductCard } from "@/components/products/ProductCard";
 import { useWishlist, useAddToWishlist, useRemoveFromWishlist } from "@/hooks/use-wishlist";
 import { useAuth } from "@/hooks/use-auth";
@@ -48,6 +48,11 @@ const ProductPage = () => {
     category_id: product?.category?.id,
     page_size: 4,
   });
+
+  const { data: categoriesData } = useCategories();
+  const categorySlug = product?.category?.slug || 
+    categoriesData?.results?.find((c) => c.id === product?.category?.id)?.slug || 
+    null;
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -191,7 +196,7 @@ const ProductPage = () => {
               <>
                 <ChevronRight className="w-4 h-4 shrink-0" />
                 <Link
-                  href={`/category/${product.category.slug}`}
+                  href={categorySlug ? `/category/${categorySlug}` : `/products?category_id=${product.category.id}`}
                   className="hover:text-foreground transition-colors"
                 >
                   {product.category.name}
@@ -269,9 +274,12 @@ const ProductPage = () => {
               <div className="flex flex-col gap-3">
                 <div className="flex items-center flex-wrap gap-3">
                   {product.category && (
-                    <span className="text-sm text-muted-foreground">
+                    <Link 
+                      href={categorySlug ? `/category/${categorySlug}` : `/products?category_id=${product.category.id}`}
+                      className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
                       {product.category.name}
-                    </span>
+                    </Link>
                   )}
                   {product.is_popular && (
                     <span className="px-3 py-1 bg-rose text-rose-foreground text-xs font-medium rounded-full">

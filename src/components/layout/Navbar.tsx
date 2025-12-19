@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -8,12 +8,13 @@ import { Search, User, Heart, ShoppingBag, Menu, X, ChevronDown } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion, AnimatePresence } from "framer-motion";
-import { categories } from "@/data/products";
+import { useParams } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/hooks/use-auth";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { useDebounce } from "@/hooks/use-debounce";
-import { useProducts } from "@/hooks/use-product";
+import { useProducts, useCategories } from "@/hooks/use-product";
+
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -26,8 +27,13 @@ export const Navbar = () => {
   const { isAuthenticated, user } = useAuth();
   const { data: wishlist } = useWishlist();
   const router = useRouter();
+  const params = useParams();
+  const slug = params?.slug as string;
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearch = useDebounce(searchQuery, 300);
+
+  const { data: categoriesData } = useCategories();
+  const categories = useMemo(() => categoriesData?.results || [], [categoriesData]);
 
   const { data: searchResults, isLoading: isSearching } = useProducts({ 
     search: debouncedSearch,
@@ -73,6 +79,20 @@ export const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Sync selected category with URL if on a category page
+  useEffect(() => {
+    if (slug && categories.length > 0) {
+      const currentCat = categories.find(c => c.slug === slug);
+      if (currentCat && currentCat.name !== selectedCategory) {
+        const timer = setTimeout(() => setSelectedCategory(currentCat.name), 0);
+        return () => clearTimeout(timer);
+      }
+    } else if (!slug && selectedCategory !== "All" && typeof window !== 'undefined' && !window.location.search.includes('category=')) {
+      const timer = setTimeout(() => setSelectedCategory("All"), 0);
+      return () => clearTimeout(timer);
+    }
+  }, [slug, categories, selectedCategory]);
 
   return (
     <header
@@ -202,17 +222,17 @@ export const Navbar = () => {
                           </button>
                           </Link>
                           {categories.map((cat) => (
-                            <button
+                            <Link
                               key={cat.id}
+                              href={`/category/${cat.slug}`}
                               onClick={() => {
                                 setSelectedCategory(cat.name);
                                 setIsCategoryOpen(false);
                               }}
                               className="w-full px-4 py-3 text-left text-sm hover:bg-secondary transition-colors flex items-center gap-2"
                             >
-                              <span>{cat.icon}</span>
                               {cat.name}
-                            </button>
+                            </Link>
                           ))}
                         </motion.div>
                       )}
@@ -394,7 +414,6 @@ export const Navbar = () => {
                       className="flex items-center gap-2 py-2 px-3 bg-secondary rounded-xl text-sm hover:bg-accent transition-colors"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <span>{cat.icon}</span>
                       {cat.name}
                     </Link>
                   ))}
