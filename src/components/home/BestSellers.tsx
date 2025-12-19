@@ -10,10 +10,15 @@ import Link from "next/link";
 export const BestSellers = () => {
   const { data, isLoading } = useProductsWithParams({
     is_popular: true,
-    page_size: 8,
+    page_size: 50,
   });
 
-  const bestSellers = data?.results || [];
+  const allPopular = data?.results || [];
+  // If we have at least 8 popular products, show index 4 to 8 to avoid overlap with Trending
+  // Otherwise, show the first 4 to ensure exactly 4 products are displayed
+  const bestSellers = allPopular.length >= 8 
+    ? allPopular.slice(2, 6) 
+    : allPopular.slice(0, 4);
 
   return (
     <section className="py-16 md:py-24">

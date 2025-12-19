@@ -11,10 +11,10 @@ import Link from "next/link";
 export const FeaturedBrand = () => {
   const { data, isLoading } = useProductsWithParams({
     is_featured: true,
-    page_size: 6,
+    page_size: 50,
   });
 
-  const featuredProducts = data?.results || [];
+  const featuredProducts = data?.results.slice(0, 6) || [];
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: "left" | "right") => {

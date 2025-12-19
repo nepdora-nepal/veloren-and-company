@@ -10,10 +10,10 @@ import Link from "next/link";
 export const TrendingProducts = () => {
   const { data, isLoading } = useProductsWithParams({
     is_popular: true,
-    page_size: 4,
+    page_size: 50,
   });
 
-  const trendingProducts = data?.results || [];
+  const trendingProducts = data?.results.slice(0, 4) || [];
 
   return (
     <section className="py-16 md:py-24">

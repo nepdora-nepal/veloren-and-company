@@ -69,23 +69,20 @@ export const useProducts = (extraParams: ProductFilterParams = {}) => {
 };
 
 // Get products with custom params (ignores URL filters)
-// NOTE: Client-side filtering for is_popular/is_featured since backend doesn't support these filters
 export const useProductsWithParams = (params: ProductFilterParams = {}) => {
-  const { is_popular, is_featured, ...apiParams } = params;
-  
   return useQuery({
     queryKey: ["products", params],
-    queryFn: () => productApi.getProducts(apiParams),
+    queryFn: () => productApi.getProducts(params),
     select: (data) => {
-      // Filter products client-side if is_popular or is_featured is specified
+      // Redundantly filter products client-side in case backend filtering is incomplete or unsupported
       let filteredResults = data.results;
       
-      if (is_popular !== undefined) {
-        filteredResults = filteredResults.filter(p => p.is_popular === is_popular);
+      if (params.is_popular !== undefined) {
+        filteredResults = filteredResults.filter(p => p.is_popular === params.is_popular);
       }
       
-      if (is_featured !== undefined) {
-        filteredResults = filteredResults.filter(p => p.is_featured === is_featured);
+      if (params.is_featured !== undefined) {
+        filteredResults = filteredResults.filter(p => p.is_featured === params.is_featured);
       }
       
       return {
