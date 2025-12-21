@@ -6,11 +6,11 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   ChevronRight,
-  CreditCard,
   Truck,
   Shield,
   Check,
   ChevronLeft,
+  Banknote,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -63,7 +63,7 @@ const CheckoutPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (step < 3) {
+    if (step < 2) {
       setStep(step + 1);
     } else {
       try {
@@ -100,8 +100,7 @@ const CheckoutPage = () => {
 
   const steps = [
     { number: 1, label: "Information" },
-    { number: 2, label: "Shipping" },
-    { number: 3, label: "Payment" },
+    { number: 2, label: "Shipping & Payment" },
   ];
 
   if (cartItems.length === 0) {
@@ -240,95 +239,79 @@ const CheckoutPage = () => {
                 )}
 
                 {step === 2 && (
-                  <div className="space-y-6">
-                    <h2 className="text-xl font-bold">Shipping Method</h2>
-                    <div className="space-y-3">
-                      {[
-                        { id: "standard", label: "Standard Shipping", price: subtotal >= 50 ? "Free" : "$5.99", time: "5-7 business days" },
-                        { id: "express", label: "Express Shipping", price: "Rs.200", time: "2-3 business days" },
-                      ].map((option) => (
-                        <label
-                          key={option.id}
-                          className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                            formData.shippingMethod === option.id
-                              ? "border-primary bg-secondary"
-                              : "border-border hover:border-muted-foreground"
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <input
-                              type="radio"
-                              name="shipping"
-                              value={option.id}
-                              checked={formData.shippingMethod === option.id}
-                              onChange={(e) => setFormData({ ...formData, shippingMethod: e.target.value })}
-                              className="sr-only"
-                            />
-                            <div
-                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                                formData.shippingMethod === option.id ? "border-primary" : "border-border"
-                              }`}
-                            >
-                              {formData.shippingMethod === option.id && (
-                                <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-                              )}
+                  <div className="space-y-8">
+                    <section className="space-y-6">
+                      <h2 className="text-xl font-bold">Shipping Method</h2>
+                      <div className="space-y-3">
+                        {[
+                          { id: "standard", label: "Standard Shipping", price: subtotal >= 50 ? "Free" : "$5.99", time: "5-7 business days" },
+                          { id: "express", label: "Express Shipping", price: "Rs.200", time: "2-3 business days" },
+                        ].map((option) => (
+                          <label
+                            key={option.id}
+                            className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                              formData.shippingMethod === option.id
+                                ? "border-primary bg-secondary"
+                                : "border-border hover:border-muted-foreground"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="radio"
+                                name="shipping"
+                                value={option.id}
+                                checked={formData.shippingMethod === option.id}
+                                onChange={(e) => setFormData({ ...formData, shippingMethod: e.target.value })}
+                                className="sr-only"
+                              />
+                              <div
+                                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                  formData.shippingMethod === option.id ? "border-primary" : "border-border"
+                                }`}
+                              >
+                                {formData.shippingMethod === option.id && (
+                                  <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                                )}
+                              </div>
+                              <div>
+                                <p className="font-medium">{option.label}</p>
+                                <p className="text-sm text-muted-foreground">{option.time}</p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-medium">{option.label}</p>
-                              <p className="text-sm text-muted-foreground">{option.time}</p>
-                            </div>
+                            <span className="font-medium">{option.price}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </section>
+
+                    <section className="space-y-4">
+                      <h2 className="text-xl font-bold">Payment Method</h2>
+                      <div className="p-5 bg-card/80 backdrop-blur-sm border-2 border-primary rounded-2xl flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+                            <Banknote className="w-6 h-6" />
                           </div>
-                          <span className="font-medium">{option.price}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {step === 3 && (
-                  <div className="space-y-6">
-                    <h2 className="text-xl font-bold">Payment</h2>
-                    <div className="p-6 bg-card border border-border rounded-2xl">
-                      <div className="flex items-center gap-3 mb-6">
-                        <CreditCard className="w-6 h-6" />
-                        <span className="font-medium">Credit Card</span>
-                      </div>
-                      <div className="space-y-4">
-                        <input
-                          type="text"
-                          placeholder="Card number"
-                          className="w-full px-4 py-4 bg-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-ring"
-                        />
-                        <div className="grid grid-cols-2 gap-4">
-                          <input
-                            type="text"
-                            placeholder="MM/YY"
-                            className="px-4 py-4 bg-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-ring"
-                          />
-                          <input
-                            type="text"
-                            placeholder="CVC"
-                            className="px-4 py-4 bg-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-ring"
-                          />
+                          <div>
+                            <p className="font-bold">Cash on Delivery</p>
+                            <p className="text-sm text-muted-foreground">Pay when you receive your order</p>
+                          </div>
                         </div>
-                        <input
-                          type="text"
-                          placeholder="Name on card"
-                          className="w-full px-4 py-4 bg-secondary rounded-xl focus:outline-none focus:ring-2 focus:ring-ring"
-                        />
+                        <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
+                          <Check className="w-4 h-4" />
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="flex items-center gap-6 pt-4">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Shield className="w-5 h-5" />
-                        <span>Secure checkout</span>
+                      <div className="flex items-center gap-6 pt-4">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Shield className="w-5 h-5" />
+                          <span>Secure checkout</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Truck className="w-5 h-5" />
+                          <span>Fast shipping</span>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Truck className="w-5 h-5" />
-                        <span>Fast shipping</span>
-                      </div>
-                    </div>
+                    </section>
                   </div>
                 )}
 
@@ -348,7 +331,7 @@ const CheckoutPage = () => {
                   )}
 
                   <Button type="submit" className="gap-2" disabled={isCreatingOrder}>
-                    {step === 3 ? (isCreatingOrder ? "Processing..." : "Place Order") : "Continue"}
+                    {step === 2 ? (isCreatingOrder ? "Processing..." : "Place Order") : "Continue"}
                     {!isCreatingOrder && <ChevronRight className="w-4 h-4" />}
                   </Button>
                 </div>

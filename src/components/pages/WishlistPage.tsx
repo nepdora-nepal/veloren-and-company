@@ -9,12 +9,15 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useWishlist, useRemoveFromWishlist } from "@/hooks/use-wishlist";
 import { useAuth } from "@/hooks/use-auth";
+import { useCart } from "@/contexts/CartContext";
+import { Product } from "@/types/product";
 
 const WishlistPage = () => {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
   const { data: wishlistItems, isLoading } = useWishlist();
   const { mutate: removeFromWishlist } = useRemoveFromWishlist();
+  const { addToCart } = useCart();
 
   // Redirect if not authenticated
   if (!isAuthenticated && typeof window !== "undefined") {
@@ -26,9 +29,10 @@ const WishlistPage = () => {
     removeFromWishlist(wishlistItemId);
   };
 
-  const addToBag = (productName: string) => {
+  const addToBag = (product: Product) => {
+    addToCart(product, 1);
     toast.success("Added to bag", {
-      description: `${productName} added to your bag.`,
+      description: `${product.name} added to your bag.`,
     });
   };
 
@@ -139,7 +143,7 @@ const WishlistPage = () => {
                   {/* Actions */}
                   <div className="flex gap-2 pt-2">
                     <Button
-                      onClick={() => addToBag(item.product.name)}
+                      onClick={() => addToBag(item.product)}
                       className="flex-1 gap-2"
                       size="sm"
                     >
