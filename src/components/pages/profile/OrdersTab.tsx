@@ -4,9 +4,12 @@ import { motion } from "framer-motion";
 import { Package, Truck, CheckCircle, Clock, XCircle, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useMyOrders } from "@/hooks/my-order";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils"; // Assuming utils exists
+import { cn } from "@/lib/utils";
+import { OrderDetailsDialog } from "./OrderDetailsDialog";
+import { Order } from "@/types/my-orders";
 
 const OrderStatusBadge = ({ status }: { status: string }) => {
     let colorClass = "bg-gray-100 text-gray-600";
@@ -47,6 +50,13 @@ const OrderStatusBadge = ({ status }: { status: string }) => {
 export const OrdersTab = () => {
     const router = useRouter();
     const { data: ordersData, isLoading, isError } = useMyOrders({ page_size: 10 });
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
+    const handleViewDetails = (order: Order) => {
+        setSelectedOrder(order);
+        setIsDetailsOpen(true);
+    };
 
     if (isLoading) {
         return (
@@ -55,10 +65,9 @@ export const OrdersTab = () => {
                 animate={{ opacity: 1 }}
                 className="space-y-6"
             >
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center justify-between mb-2">
                      <div>
-                        <h2 className="text-xl font-medium mb-1">Order History</h2>
-                        <p className="text-sm text-muted-foreground">Loading your orders...</p>
+                        <p className="text-sm text-muted-foreground animate-pulse">Loading your orders...</p>
                     </div>
                 </div>
                 {[1, 2, 3].map((i) => (
@@ -91,13 +100,6 @@ export const OrdersTab = () => {
             transition={{ duration: 0.3 }}
             className="space-y-6"
         >
-            <div className="flex items-center justify-between mb-8">
-                <div>
-                    <h2 className="text-xl font-medium mb-1">Order History</h2>
-                    <p className="text-sm text-muted-foreground">View and track your recent orders.</p>
-                </div>
-            </div>
-
             {!hasOrders ? (
                 <div className="rounded-2xl border border-dashed border-border/60 bg-secondary/20 p-12 flex flex-col items-center justify-center text-center">
                     <div className="w-16 h-16 bg-background rounded-full shadow-soft flex items-center justify-center mb-4">
@@ -112,7 +114,8 @@ export const OrdersTab = () => {
                     {sortedOrders.map((order) => (
                         <div 
                             key={order.id} 
-                            className="group block rounded-xl border border-border/50 bg-card hover:bg-secondary/20 hover:border-secondary transition-all duration-300 overflow-hidden"
+                            onClick={() => handleViewDetails(order)}
+                            className="group block rounded-xl border border-border/50 bg-card hover:bg-secondary/20 hover:border-secondary transition-all duration-300 overflow-hidden cursor-pointer"
                         >
                             <div className="p-5 flex flex-col md:flex-row gap-6 md:items-center justify-between">
                                 {/* Order Info */}
@@ -132,7 +135,12 @@ export const OrdersTab = () => {
                                         <p className="text-muted-foreground text-xs mb-0.5">Total</p>
                                         <p className="font-medium">Rs. {parseFloat(order.total_amount).toLocaleString()}</p>
                                     </div>
-                                    <Button size="sm" variant="outline" className="gap-2 group-hover:border-primary/50 group-hover:text-primary transition-colors">
+                                    <Button 
+                                        size="sm" 
+                                        variant="outline" 
+                                        className="gap-2 group-hover:border-primary/50 group-hover:text-primary transition-colors"
+                                        onClick={() => handleViewDetails(order)}
+                                    >
                                         View Details <ChevronRight className="w-4 h-4" />
                                     </Button>
                                 </div>
@@ -156,6 +164,16 @@ export const OrdersTab = () => {
                     ))}
                 </div>
             )}
+            <OrderDetailsDialog 
+                order={selectedOrder} 
+                orders={sortedOrders}
+                open={isDetailsOpen} 
+                onOpenChange={setIsDetailsOpen} 
+                onOrderChange={(orderId) => {
+                    const newOrder = sortedOrders.find(o => o.id === orderId);
+                    if (newOrder) setSelectedOrder(newOrder);
+                }}
+            />
         </motion.div>
     );
 }

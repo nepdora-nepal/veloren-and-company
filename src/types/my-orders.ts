@@ -16,6 +16,18 @@ export interface OrderItem {
   price: string;
   color?: string;
   size?: string;
+  variant?: {
+    id: number;
+    image?: string;
+    product?: {
+      name: string;
+    };
+    option_values: {
+      id: number;
+      option_name: string;
+      value: string;
+    }[];
+  };
 }
 
 export interface Order {
@@ -31,6 +43,9 @@ export interface Order {
   order_items: OrderItem[];
   created_at: string;
   updated_at: string;
+  latitude?: number;
+  longitude?: number;
+  location_accuracy?: number;
 }
 
 export interface OrdersResponse {

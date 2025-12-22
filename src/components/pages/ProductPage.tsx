@@ -32,6 +32,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/contexts/CartContext";
 import { useReviews, useCreateReview } from "@/hooks/use-review";
 import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 const ProductPage = () => {
   const params = useParams();
@@ -84,11 +85,9 @@ const ProductPage = () => {
       return;
     }
 
-    if (isWishlisted) {
-      if (wishlistItem) {
-        removeFromWishlist(wishlistItem.id);
-      }
-    } else {
+    if (isWishlisted && wishlistItem) {
+      removeFromWishlist(wishlistItem.id);
+    } else if (!isWishlisted) {
       addToWishlist(product.id);
     }
   };
@@ -390,12 +389,16 @@ const ProductPage = () => {
                     variant="outline"
                     size="icon"
                     onClick={handleWishlistClick}
-                    className="h-12 w-12 sm:h-11 sm:w-11"
+                    className={cn(
+                        "h-12 w-12 sm:h-11 sm:w-11 transition-all duration-300",
+                        isWishlisted ? "bg-rose text-rose-foreground border-rose hover:bg-rose/90 shadow-soft" : "hover:bg-secondary"
+                    )}
                   >
                     <Heart
-                      className={`w-5 h-5 ${
-                        isWishlisted ? "fill-rose-foreground text-rose-foreground" : ""
-                      }`}
+                      className={cn(
+                        "w-5 h-5 transition-colors",
+                        isWishlisted ? "fill-current" : ""
+                      )}
                     />
                   </Button>
                 </div>
