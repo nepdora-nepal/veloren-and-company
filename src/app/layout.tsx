@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
+
 import { Toaster } from "@/components/ui/sonner";
 import { Footer } from "@/components/layout/Footer";
 import { Navbar } from "@/components/layout/Navbar";
@@ -9,23 +9,30 @@ import { CartSheet } from "@/components/cart/CartSheet";
 import { Providers } from "./providers";
 import { AuthProvider } from "@/contexts/auth-context";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+/* -----------------------------
+   Fonts (Geist – CORRECT USAGE)
+------------------------------ */
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
+/* -----------------------------
+   Metadata
+------------------------------ */
 export const metadata: Metadata = {
   title: {
     default: "GLOW | Premium Skincare & Beauty Essentials",
-    template: "%s | GLOW"
+    template: "%s | GLOW",
   },
-  description: "Discover your natural radiance with GLOW. Shop our curated collection of luxury skincare, beauty products, and wellness essentials for every skin type.",
-  keywords: ["skincare", "beauty products", "luxury skincare", "natural beauty", "glow", "skincare routine", "beauty essentials"],
+  description:
+    "Discover your natural radiance with GLOW. Shop our curated collection of luxury skincare, beauty products, and wellness essentials for every skin type.",
+  keywords: [
+    "skincare",
+    "beauty products",
+    "luxury skincare",
+    "natural beauty",
+    "glow",
+    "skincare routine",
+    "beauty essentials",
+  ],
   authors: [{ name: "GLOW Team" }],
   creator: "GLOW",
   publisher: "GLOW",
@@ -40,7 +47,8 @@ export const metadata: Metadata = {
     url: "https://glow-luxury.vercel.app",
     siteName: "GLOW",
     title: "GLOW | Premium Skincare & Beauty Essentials",
-    description: "Discover your natural radiance with GLOW. Shop our curated collection of luxury skincare and beauty products.",
+    description:
+      "Discover your natural radiance with GLOW. Shop our curated collection of luxury skincare and beauty products.",
     images: [
       {
         url: "/og-image.jpg",
@@ -53,7 +61,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "GLOW | Premium Skincare & Beauty Essentials",
-    description: "Discover your natural radiance with GLOW. Shop our curated collection of luxury skincare and beauty products.",
+    description:
+      "Discover your natural radiance with GLOW. Shop our curated collection of luxury skincare and beauty products.",
     images: ["/og-image.jpg"],
     creator: "@glowbeauty",
   },
@@ -70,29 +79,28 @@ export const metadata: Metadata = {
   },
 };
 
+/* -----------------------------
+   Root Layout
+------------------------------ */
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
           <AuthProvider>
-          <Toaster />
-          <Suspense fallback={null}>
-            <Navbar />
-          </Suspense>
-          <CartSheet />
-          {children}
-          <Footer />
+            <Toaster />
+            <Suspense fallback={null}>
+              <Navbar />
+            </Suspense>
+            <CartSheet />
+            {children}
+            <Footer />
           </AuthProvider>
         </Providers>
       </body>
     </html>
   );
 }
-
